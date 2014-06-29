@@ -31,7 +31,8 @@ execute_global_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
     result.type = NORMAL_STATEMENT_RESULT;
 
     if (env == NULL) {
-        crb_runtime_error(statement->line_number,
+        crb_runtime_error(statement->filename,
+						statement->line_number,
                           GLOBAL_STATEMENT_IN_TOPLEVEL_ERR,
                           MESSAGE_ARGUMENT_END);
     }
@@ -39,7 +40,9 @@ execute_global_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
 		CRB_Boolean ret = crb_add_scope_global_ref(inter, 
 								env->environ_scope, pos->name);
 		if (ret == CRB_FALSE) {
-			crb_runtime_error(statement->line_number,
+			crb_runtime_error(
+							statement->filename,
+							statement->line_number,
 							GLOBAL_VARIABLE_NOT_FOUND_ERR,
 							STRING_MESSAGE_ARGUMENT, "name",
 							pos->name, MESSAGE_ARGUMENT_END);
@@ -62,7 +65,9 @@ execute_elsif(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
     for (pos = elsif_list; pos; pos = pos->next) {
         cond = crb_eval_expression(inter, env, pos->condition);
         if (cond.type != CRB_BOOLEAN_VALUE) {
-            crb_runtime_error(pos->condition->line_number,
+            crb_runtime_error(
+								pos->condition->filename,
+								pos->condition->line_number,
                               NOT_BOOLEAN_TYPE_ERR, MESSAGE_ARGUMENT_END);
         }
         if (cond.u.boolean_value) {
@@ -89,7 +94,9 @@ execute_if_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
     result.type = NORMAL_STATEMENT_RESULT;
     cond = crb_eval_expression(inter, env, statement->u.if_s.condition);
     if (cond.type != CRB_BOOLEAN_VALUE) {
-        crb_runtime_error(statement->u.if_s.condition->line_number,
+        crb_runtime_error(
+							statement->u.if_s.condition->filename,
+							statement->u.if_s.condition->line_number,
                           NOT_BOOLEAN_TYPE_ERR, MESSAGE_ARGUMENT_END);
     }
     DBG_assert(cond.type == CRB_BOOLEAN_VALUE, ("cond.type..%d", cond.type));
@@ -125,7 +132,9 @@ execute_while_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
     for (;;) {
         cond = crb_eval_expression(inter, env, statement->u.while_s.condition);
         if (cond.type != CRB_BOOLEAN_VALUE) {
-            crb_runtime_error(statement->u.while_s.condition->line_number,
+            crb_runtime_error(
+							statement->u.while_s.condition->filename,
+							statement->u.while_s.condition->line_number,
                               NOT_BOOLEAN_TYPE_ERR, MESSAGE_ARGUMENT_END);
         }
         DBG_assert(cond.type == CRB_BOOLEAN_VALUE,
@@ -169,8 +178,10 @@ execute_for_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
             cond = crb_eval_expression(inter, env,
                                        statement->u.for_s.condition);
             if (cond.type != CRB_BOOLEAN_VALUE) {
-                crb_runtime_error(statement->u.for_s.condition->line_number,
-                                  NOT_BOOLEAN_TYPE_ERR, MESSAGE_ARGUMENT_END);
+                crb_runtime_error(
+						statement->u.for_s.condition->filename,
+						statement->u.for_s.condition->line_number,
+                        NOT_BOOLEAN_TYPE_ERR, MESSAGE_ARGUMENT_END);
             }
             DBG_assert(cond.type == CRB_BOOLEAN_VALUE,
                        ("cond.type..%d", cond.type));
@@ -311,7 +322,9 @@ static StatementResult execute_throw_statement(CRB_Interpreter *inter,
 	if (pv->type != CRB_ASSOC_VALUE || crb_search_assoc_variable(
 				inter, pv->u.object_value, "is_exception", 
 				CRB_FALSE) == NULL) {
-		crb_runtime_error(statement->line_number, 
+		crb_runtime_error(
+				statement->filename,
+				statement->line_number, 
 				THROW_NOT_EXCEPTION_TYPE_ERR, MESSAGE_ARGUMENT_END);
 	}
 
@@ -363,7 +376,9 @@ static StatementResult execute_foreach_statement(CRB_Interpreter *inter,
 						statement->u.foreach_s.array_expr);
 
 	if (pv->type != CRB_ARRAY_VALUE) {
-		crb_runtime_error(statement->line_number, 
+		crb_runtime_error(
+				statement->filename,
+				statement->line_number, 
 				FOREACH_NOT_ARRAY_TYPE_ERR, MESSAGE_ARGUMENT_END);
 	}
 	

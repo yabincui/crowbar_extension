@@ -13,16 +13,20 @@ static CRB_NativePointerInfo st_native_lib_info = {
 
 
 
-static void check_argument_count(int arg_count, int true_count)
+static void check_argument_count(int arg_count, int true_count,
+								char *filename, int line_number)
 {
 	if (arg_count < true_count)
-		crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
+		crb_runtime_error(filename, line_number, 
+						ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
 	else if (arg_count > true_count)
-		crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
+		crb_runtime_error(filename, line_number, 
+						ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
 }
 void crb_nv_print_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
-                            int arg_count)
+                            int arg_count,
+							char *filename, int line_number)
 {
     CRB_Value value;
 	CRB_Value *args;
@@ -31,7 +35,7 @@ void crb_nv_print_proc(CRB_Interpreter *interpreter,
 
     value.type = CRB_NULL_VALUE;
 
-	check_argument_count(arg_count, 1);
+	check_argument_count(arg_count, 1, filename, line_number);
 
 	args = crb_stack_peek_value(interpreter, 0);
 
@@ -47,7 +51,8 @@ void crb_nv_print_proc(CRB_Interpreter *interpreter,
 
 void crb_nv_println_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
-                            int arg_count)
+                            int arg_count,
+							char *filename, int line_number)
 {
     CRB_Value value;
 	CRB_Value *args;
@@ -56,7 +61,7 @@ void crb_nv_println_proc(CRB_Interpreter *interpreter,
 
     value.type = CRB_NULL_VALUE;
 
-	check_argument_count(arg_count, 1);
+	check_argument_count(arg_count, 1, filename, line_number);
 
 	args = crb_stack_peek_value(interpreter, 0);
 
@@ -73,30 +78,27 @@ void crb_nv_println_proc(CRB_Interpreter *interpreter,
 
 void crb_nv_fopen_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
-                            int arg_count)
+                            int arg_count,
+							char *filename, int line_number)
 {
     CRB_Value value;
     FILE *fp;
 	CRB_Value *args;
-
-    if (arg_count < 2) {
-        crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR,
-                          MESSAGE_ARGUMENT_END);
-    } else if (arg_count > 2) {
-        crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
-                          MESSAGE_ARGUMENT_END);
-    }
-
+	
+	check_argument_count(arg_count, 2, filename, line_number);
+	
 	args = crb_stack_peek_value(interpreter, 1);
 
     if (args[0].type != CRB_STRING_VALUE
         || args[1].type != CRB_STRING_VALUE) {
-        crb_runtime_error(0, FOPEN_ARGUMENT_TYPE_ERR,
+        crb_runtime_error(filename, line_number, FOPEN_ARGUMENT_TYPE_ERR,
                           MESSAGE_ARGUMENT_END);
     }
 
-	char *fname = CRB_wcstombs_alloc(0, args[0].u.object_value->u.string.string);
-	char *fmode = CRB_wcstombs_alloc(0, args[1].u.object_value->u.string.string);
+	char *fname = CRB_wcstombs_alloc(filename, line_number, 
+							args[0].u.object_value->u.string.string);
+	char *fmode = CRB_wcstombs_alloc(filename, line_number,
+							args[1].u.object_value->u.string.string);
 
     fp = fopen(fname, fmode);
 
@@ -123,26 +125,22 @@ check_native_pointer(CRB_Value *value)
 
 void crb_nv_fclose_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
-                             int arg_count)
+                             int arg_count,
+							 char *filename, int line_number)
 {
     CRB_Value value;
     FILE *fp;
 	CRB_Value *args;
 
     value.type = CRB_NULL_VALUE;
-    if (arg_count < 1) {
-        crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR,
-                          MESSAGE_ARGUMENT_END);
-    } else if (arg_count > 1) {
-        crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
-                          MESSAGE_ARGUMENT_END);
-    }
+	
+	check_argument_count(arg_count, 1, filename, line_number);
 
 	args = crb_stack_peek_value(interpreter, 0);
 
     if (args[0].type != CRB_NATIVE_POINTER_VALUE
         || !check_native_pointer(&args[0])) {
-        crb_runtime_error(0, FCLOSE_ARGUMENT_TYPE_ERR,
+        crb_runtime_error(filename, line_number, FCLOSE_ARGUMENT_TYPE_ERR,
                           MESSAGE_ARGUMENT_END);
     }
     fp = args[0].u.native_pointer.pointer;
@@ -154,7 +152,8 @@ void crb_nv_fclose_proc(CRB_Interpreter *interpreter,
 
 void crb_nv_fgets_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
-                            int arg_count)
+                            int arg_count,
+							char *filename, int line_number)
 {
     CRB_Value value;
     FILE *fp;
@@ -162,20 +161,15 @@ void crb_nv_fgets_proc(CRB_Interpreter *interpreter,
     char *ret_buf = NULL;
     int ret_len = 0;
 	CRB_Value *args;
+	
+	check_argument_count(arg_count, 1, filename, line_number);
 
-    if (arg_count < 1) {
-        crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR,
-                          MESSAGE_ARGUMENT_END);
-    } else if (arg_count > 1) {
-        crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
-                          MESSAGE_ARGUMENT_END);
-    }
 
 	args = crb_stack_peek_value(interpreter, 0);
 
     if (args[0].type != CRB_NATIVE_POINTER_VALUE
         || !check_native_pointer(&args[0])) {
-        crb_runtime_error(0, FGETS_ARGUMENT_TYPE_ERR,
+        crb_runtime_error(filename, line_number, FGETS_ARGUMENT_TYPE_ERR,
                           MESSAGE_ARGUMENT_END);
     }
     fp = args[0].u.native_pointer.pointer;
@@ -196,7 +190,7 @@ void crb_nv_fgets_proc(CRB_Interpreter *interpreter,
     if (ret_len > 0) {
         value.type = CRB_STRING_VALUE;
 
-		CRB_CHAR *wstr = CRB_mbstowcs_alloc(0, ret_buf);
+		CRB_CHAR *wstr = CRB_mbstowcs_alloc(filename, line_number, ret_buf);
 		MEM_free(ret_buf);
 
         value.u.object_value = 
@@ -211,27 +205,22 @@ void crb_nv_fgets_proc(CRB_Interpreter *interpreter,
 
 void crb_nv_fputs_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
-                            int arg_count)
+                            int arg_count,
+							char *filename, int line_number)
 {
     CRB_Value value;
     FILE *fp;
 	CRB_Value *args;
 
     value.type = CRB_NULL_VALUE;
-    if (arg_count < 2) {
-        crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR,
-                          MESSAGE_ARGUMENT_END);
-    } else if (arg_count > 2) {
-        crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
-                          MESSAGE_ARGUMENT_END);
-    }
+	check_argument_count(arg_count, 2, filename, line_number);
 
 	args = crb_stack_peek_value(interpreter, 1);
 
     if (args[0].type != CRB_STRING_VALUE
         || (args[1].type != CRB_NATIVE_POINTER_VALUE
             || !check_native_pointer(&args[1]))) {
-        crb_runtime_error(0, FPUTS_ARGUMENT_TYPE_ERR,
+        crb_runtime_error(filename, line_number, FPUTS_ARGUMENT_TYPE_ERR,
                           MESSAGE_ARGUMENT_END);
     }
     fp = args[1].u.native_pointer.pointer;
@@ -286,7 +275,8 @@ static CRB_Value new_array(CRB_Interpreter *inter,
 
 void crb_nv_new_array_proc(CRB_Interpreter *inter,
 							CRB_LocalEnvironment *env,
-							int arg_count)
+							int arg_count,
+							char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
@@ -305,7 +295,8 @@ void crb_nv_new_array_proc(CRB_Interpreter *inter,
 	int i;
 	for (i=0; i<arg_count; i++) {
 		if (args[i].type != CRB_INT_VALUE || args[i].u.int_value < 0)
-			crb_runtime_error(0, NEW_ARRAY_ARGUMENT_TYPE_ERR,
+			crb_runtime_error(filename, line_number, 
+					NEW_ARRAY_ARGUMENT_TYPE_ERR,
 					MESSAGE_ARGUMENT_END);
 	}
 
@@ -324,11 +315,12 @@ void crb_nv_new_array_proc(CRB_Interpreter *inter,
 
 void crb_nv_new_object_proc(CRB_Interpreter *inter,
 							CRB_LocalEnvironment *env,
-							int arg_count)
+							int arg_count,
+							char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
-	check_argument_count(arg_count, 0);
+	check_argument_count(arg_count, 0, filename, line_number);
 
 	CRB_Value assoc_value;
 
@@ -342,11 +334,12 @@ void crb_nv_new_object_proc(CRB_Interpreter *inter,
 
 void crb_nv_new_exception_proc(CRB_Interpreter *inter,
 							CRB_LocalEnvironment *env,
-							int arg_count)
+							int arg_count,
+							char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
-	check_argument_count(arg_count, 1);
+	check_argument_count(arg_count, 1, filename, line_number);
 	
 	CRB_Value *args;
 

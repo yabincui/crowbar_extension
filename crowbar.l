@@ -84,6 +84,11 @@ static void set_compile_state(int state)
 <INITIAL>"&&"           return LOGICAL_AND;
 <INITIAL>"||"           return LOGICAL_OR;
 <INITIAL>"="            return ASSIGN;
+<INITIAL>"+="			return ADD_ASSIGN;
+<INITIAL>"-="			return SUB_ASSIGN;
+<INITIAL>"*="			return MUL_ASSIGN;
+<INITIAL>"/="			return DIV_ASSIGN;
+<INITIAL>"%="			return MOD_ASSIGN;
 <INITIAL>"=="           return EQ;
 <INITIAL>"!="           return NE;
 <INITIAL>">"            return GT;
@@ -95,6 +100,7 @@ static void set_compile_state(int state)
 <INITIAL>"*"            return MUL;
 <INITIAL>"/"            return DIV;
 <INITIAL>"%"            return MOD;
+<INITIAL>"!"			return NOT;
 <INITIAL>"["			return LB;
 <INITIAL>"]"			return RB;
 <INITIAL>"."			return DOT;

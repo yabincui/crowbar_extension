@@ -1,0 +1,23 @@
+a = -3;
+
+function show(str, a, b)
+{
+	println(str + ": a = " + a + ", b = " + b);
+}
+
+
+a = "abcdegf";
+b = a.substr(4, 3);
+show("a=\"abcdegf\", b = a.substr(4, 3)", a, b);
+println("a.length() = " + a.length());
+
+a = {1, 2, 3};
+a.add(4);
+println("a = " + a);
+println("a.size() = " + a.size());
+a.resize(3);
+println("a = " + a);
+a.insert(2, -3);
+println("a = " + a);
+a.remove(2);
+println("a = " + a);

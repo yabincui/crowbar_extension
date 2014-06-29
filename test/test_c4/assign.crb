@@ -1,0 +1,27 @@
+
+function show(str, a, b) {
+	println(str + ": a = " + a + ", b = " + b);
+}
+
+a = 4;
+b = 3;
+show("a=4, b=3", a, b);
+a += b;
+show("a += b", a, b);
+a -= b;
+show("a -= b", a, b);
+a *= b;
+show("a *= b", a, b);
+a /= b;
+show("a /= b", a, b);
+a %= b;
+show("a %= b", a, b);
+
+a = true;
+b = !a;
+show("a=true, b=!a", a, b);
+a = !b;
+show("a=!b", a, b);
+a = !!b;
+show("a=!!b", a, b);
+

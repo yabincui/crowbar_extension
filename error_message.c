@@ -51,5 +51,6 @@ MessageFormat crb_runtime_error_message_format[] = {
 	{"group index overflow"},
 	{"no such group index: $(g_idx)"},
 	{"foreach not array type"},
+	{"not boolean value for not expression"},
     {"dummy"},
 };

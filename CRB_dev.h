@@ -45,6 +45,7 @@ typedef struct {
 } CRB_Closure;
 
 typedef struct {
+	char *filename;
 	int line_number;
 	char *method_name;
 	CRB_Object *object;
@@ -65,7 +66,8 @@ typedef struct {
 
 typedef void CRB_NativeFunctionProc(CRB_Interpreter *interpreter,
                                     CRB_LocalEnvironment *env,     
-									int arg_count);
+									int arg_count,
+									char *filename, int line_number);
 
 void CRB_add_native_function(CRB_Interpreter *interpreter,
                              char *name, CRB_NativeFunctionProc *proc);

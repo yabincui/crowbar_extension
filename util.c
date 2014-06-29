@@ -218,7 +218,7 @@ static int my_strlen(CRB_CHAR *str)
 
 void crb_vstr_append_string(VString *v, char *str)
 {
-	CRB_CHAR *wstr = CRB_mbstowcs_alloc(0, str);
+	CRB_CHAR *wstr = CRB_mbstowcs_alloc(__FILE__, __LINE__, str);
 	crb_vstr_append_wstring(v, wstr);
 	MEM_free(wstr);
 }

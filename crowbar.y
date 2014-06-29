@@ -23,7 +23,8 @@
         LP RP LC RC SEMICOLON COMMA ASSIGN LOGICAL_AND LOGICAL_OR
         EQ NE GT GE LT LE ADD SUB MUL DIV MOD TRUE_T FALSE_T GLOBAL_T
 		LB RB DOT INCREMENT DECREMENT CLOSURE TRY CATCH FINALLY THROW
-		FOREACH COLON
+		FOREACH COLON ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN
+		MOD_ASSIGN NOT
 %type   <parameter_list> parameter_list
 %type   <argument_list> argument_list
 %type   <expression> expression expression_opt
@@ -100,9 +101,30 @@ expression
         : logical_or_expression
         | postfix_expression ASSIGN expression_or_array_literal
         {
-            $$ = crb_create_assign_expression($1, $3);
+            $$ = crb_create_assign_expression(ASSIGN_TYPE, $1, $3);
         }
+		| postfix_expression ADD_ASSIGN expression_or_array_literal
+		{
+			$$ = crb_create_assign_expression(ADD_ASSIGN_TYPE, $1, $3);
+		}
+		| postfix_expression SUB_ASSIGN expression_or_array_literal
+		{
+			$$ = crb_create_assign_expression(SUB_ASSIGN_TYPE, $1, $3);
+		}
+		| postfix_expression MUL_ASSIGN expression_or_array_literal
+		{
+			$$ = crb_create_assign_expression(MUL_ASSIGN_TYPE, $1, $3);
+		}
+		| postfix_expression DIV_ASSIGN expression_or_array_literal
+		{
+			$$ = crb_create_assign_expression(DIV_ASSIGN_TYPE, $1, $3);
+		}
+		| postfix_expression MOD_ASSIGN expression_or_array_literal
+		{
+			$$ = crb_create_assign_expression(MOD_ASSIGN_TYPE, $1, $3);
+		}
         ;
+
 logical_or_expression
         : logical_and_expression
         | logical_or_expression LOGICAL_OR logical_and_expression
@@ -191,6 +213,10 @@ unary_expression
 		{
 			$$ = crb_create_incdec_expression(PREV_DECREMENT_EXPRESSION,
 					$2);
+		}
+		| NOT unary_expression
+		{
+			$$ = crb_create_not_expression($2);
 		}
         ;
 

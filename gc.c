@@ -77,6 +77,7 @@ static void gc_mark_value(CRB_Value *value)
 		gc_mark_object(value->u.fake_method.object);
 		break;
 	default:
+		*(char*)0 = 1;
 		DBG_panic(("unexpected value type : %d\n", value->type));
 	}
 }

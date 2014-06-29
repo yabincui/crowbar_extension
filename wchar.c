@@ -80,14 +80,16 @@ int CRB_mbstowcs(CRB_CHAR *dest, const char *src)
 
 
 
-CRB_CHAR* CRB_mbstowcs_alloc(int line_number, const char *src)
+CRB_CHAR* CRB_mbstowcs_alloc(char *filename, int line_number, 
+							const char *src)
 {
 	int len;
 	CRB_CHAR *dest;
 
 	len = CRB_mbstowcs_len(src);
 	if (len < 0) {
-		crb_runtime_error(line_number, BAD_MULTIBYTE_CHARACTER_ERR,
+		crb_runtime_error(filename, line_number, 
+				BAD_MULTIBYTE_CHARACTER_ERR,
 				MESSAGE_ARGUMENT_END);
 		return NULL;
 	}
@@ -136,14 +138,15 @@ int CRB_wcstombs(char *dest, const CRB_CHAR *src)
 }
 
 
-char* CRB_wcstombs_alloc(int line_number, const CRB_CHAR *src)
+char* CRB_wcstombs_alloc(char *filename, int line_number, 
+						const CRB_CHAR *src)
 {
 	int len;
 	char *dest;
 
 	len = CRB_wcstombs_len(src);
 	if (len < 0) {
-		crb_runtime_error(line_number, BAD_CRB_CHARACTER_ERR,
+		crb_runtime_error(filename, line_number, BAD_CRB_CHARACTER_ERR,
 				MESSAGE_ARGUMENT_END);
 		return NULL;
 	}

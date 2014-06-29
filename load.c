@@ -559,13 +559,33 @@ static Expression* load_assign_expression(FILE *fpin)
 		}
 
 		if (strcmp(line->argv[0], "ASSIGN_EXPRESSION")==0) {
+			AssignType type;
+			char *type_str;
 			Expression *left_expr;
 			Expression *right_expr;
 			
+			DBG_assert(line->argc == 2, ("ASSIGN_EXPRESSION without assign_type"));
+			type_str = line->argv[1];
+			if (!strcmp(type_str, "ASSIGN"))
+				type = ASSIGN_TYPE;
+			else if (!strcmp(type_str, "ADD_ASSIGN"))
+				type = ADD_ASSIGN_TYPE;
+			else if (!strcmp(type_str, "SUB_ASSIGN"))
+				type = SUB_ASSIGN_TYPE;
+			else if (!strcmp(type_str, "MUL_ASSIGN"))
+				type = MUL_ASSIGN_TYPE;
+			else if (!strcmp(type_str, "DIV_ASSIGN"))
+				type = DIV_ASSIGN_TYPE;
+			else if (!strcmp(type_str, "MOD_ASSIGN"))
+				type = MOD_ASSIGN_TYPE;
+			else
+				DBG_panic(("unexpected assign_type: %s\n", type_str));
+
 			release_line(line);
 			left_expr = load_expression(fpin);
 			right_expr = load_expression(fpin);
-			expr = crb_create_assign_expression(left_expr, right_expr);
+			expr = crb_create_assign_expression(type, left_expr, 
+												right_expr);
 			break;
 		}
 		else {
@@ -632,6 +652,39 @@ static Expression* load_binary_expression(FILE *fpin)
 	return expr;
 }
 
+
+static Expression* load_not_expression(FILE *fpin)
+{
+	LineElement *line;
+	Expression *expr = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+
+		if (line->argc == 0) {
+			release_line(line); continue;
+		}
+
+
+		if (strcmp(line->argv[0], "NOT_EXPRESSION")==0) {
+
+			release_line(line);
+
+			Expression *sub_expr = load_expression(fpin);
+
+			expr = crb_create_not_expression(sub_expr);
+
+			break;
+		}
+		else {
+			DBG_panic(("unexpected not_expression: %s\n", line->argv[0]));
+		}
+	}
+	return expr;
+}
 
 
 static Expression* load_logical_and_or_expression(FILE *fpin)
@@ -823,79 +876,6 @@ static Expression* load_null_expression(FILE *fpin)
 }
 
 
-static Expression* load_method_call_expression(FILE *fpin)
-{
-	LineElement *line;
-	Expression *expr = NULL;
-
-	while (1) {
-		line = get_next_line(fpin);
-		if (!line->str) {
-			release_line(line);
-			break;
-		}
-		if (line->argc==0) {
-			release_line(line);
-			continue;
-		}
-		if (strcmp(line->argv[0], "METHOD_CALL_EXPRESSION")==0) {
-			DBG_assert(line->argc==3, 
-					("METHOD_CALL_EXPRESSION with argc..%d\n",
-					 line->argc));
-
-			char *identifier = crb_create_identifier(line->argv[1]);
-			int argument_num;
-			sscanf(line->argv[2], "%d", &argument_num);
-			release_line(line);
-
-			Expression *obj_expr = load_expression(fpin);
-
-			ArgumentList *argument = NULL;
-			int i;
-
-			for (i=0; i<argument_num; i++) {
-				Expression *arg_expr = NULL;
-
-				while (1) {
-					line = get_next_line(fpin);
-					if (!line->str) {
-						release_line(line); break;
-					}
-					if (line->argc==0) {
-						release_line(line); continue;
-					}
-					if (strcmp(line->argv[0], "ARGUMENT")==0) {
-						release_line(line);
-						arg_expr = load_expression(fpin);
-						break;
-					}
-					else {
-						DBG_panic(("unexpected argument:%s\n",
-									line->argv[0]));
-					}
-				}
-
-				if (argument == NULL)
-					argument = crb_create_argument_list(arg_expr);
-				else
-					argument = crb_chain_argument_list(argument, arg_expr);
-
-			}
-
-			expr = crb_create_method_call_expression(obj_expr,
-											identifier, argument);
-			break;
-			
-		}
-		else {
-			DBG_panic(("unexpected method_call_expression:%s\n",
-						line->argv[0]));
-		}
-	}
-
-	return expr;
-
-}
 
 
 Expression* load_array_expression(FILE *fpin)
@@ -1149,6 +1129,10 @@ static Expression* load_expression(FILE *fpin)
 			unget_line(line);
 			expr = load_binary_expression(fpin);
 		}
+		else if (strcmp(line->argv[0], "NOT_EXPRESSION")==0) {
+			unget_line(line);
+			expr = load_not_expression(fpin);
+		}
 		else if (strcmp(line->argv[0], "LOGICAL_AND_EXPRESSION")==0 ||
 				strcmp(line->argv[0], "LOGICAL_OR_EXPRESSION")==0) {
 			unget_line(line);
@@ -1165,10 +1149,6 @@ static Expression* load_expression(FILE *fpin)
 		else if (strcmp(line->argv[0], "NULL_EXPRESSION")==0) {
 			unget_line(line);
 			expr = load_null_expression(fpin);
-		}
-		else if (strcmp(line->argv[0], "METHOD_CALL_EXPRESSION")==0) {
-			unget_line(line);
-			expr = load_method_call_expression(fpin);
 		}
 		else if (strcmp(line->argv[0], "ARRAY_EXPRESSION")==0) {
 			unget_line(line);

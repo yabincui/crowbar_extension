@@ -172,6 +172,8 @@ void crb_array_resize(CRB_Interpreter *inter, CRB_Object *obj, int new_size)
 {
 	int new_alloc_size;
 	CRB_Boolean need_realloc;
+
+	DBG_assert(new_size >=0, (""));
 	
 	crb_check_gc(inter);
 	if (new_size > obj->u.array.alloc_size) {
@@ -211,7 +213,33 @@ void crb_array_resize(CRB_Interpreter *inter, CRB_Object *obj, int new_size)
 void crb_array_set(CRB_Interpreter *inter, CRB_Object *obj,
 					int pos, CRB_Value *val)
 {
+	DBG_assert(pos >= 0 && pos < obj->u.array.length, (""));
 	obj->u.array.array[pos] = *val;
+}
+
+void crb_array_insert(CRB_Interpreter *inter, CRB_Object *obj,
+					int pos, CRB_Value *val)
+{
+	DBG_assert(pos >= 0 && pos <= obj->u.array.length, (""));
+
+	crb_array_resize(inter, obj, obj->u.array.length+1);
+	int i;
+	for (i = obj->u.array.length-1; i > pos; i--) {
+		obj->u.array.array[i] = obj->u.array.array[i-1];
+	}
+	obj->u.array.array[i] = *val;
+}
+
+void crb_array_remove(CRB_Interpreter *inter, CRB_Object *obj,
+					int pos)
+{
+	DBG_assert(pos >= 0 && pos < obj->u.array.length, (""));
+
+	int i;
+	for (i = pos; i < obj->u.array.length-1; i++) {
+		obj->u.array.array[i] = obj->u.array.array[i+1];
+	}
+	crb_array_resize(inter, obj, obj->u.array.length-1);
 }
 
 

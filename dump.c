@@ -132,8 +132,26 @@ static void dump_identifier_expression(Expression *expression, FILE *fpout,
 static void dump_assign_expression(Expression *expression, FILE *fpout,
 														int space_num)
 {
-	fprintf(fpout, "%sASSIGN_EXPRESSION\n",
-			space_num_string(space_num));
+	AssignType type = expression->u.assign_expression.type;
+	char *type_str = NULL;
+
+	if (type == ASSIGN_TYPE)
+		type_str = "ASSIGN";
+	else if (type == ADD_ASSIGN_TYPE)
+		type_str = "ADD_ASSIGN";
+	else if (type == SUB_ASSIGN_TYPE)
+		type_str = "SUB_ASSIGN";
+	else if (type == MUL_ASSIGN_TYPE)
+		type_str = "MUL_ASSIGN";
+	else if (type == DIV_ASSIGN_TYPE)
+		type_str = "DIV_ASSIGN";
+	else if (type == MOD_ASSIGN_TYPE)
+		type_str = "MOD_ASSIGN";
+	else
+		DBG_panic(("unexpected assign type : %d\n", type));
+
+	fprintf(fpout, "%sASSIGN_EXPRESSION %s\n",
+			space_num_string(space_num), type_str);
 	dump_expression(expression->u.assign_expression.left, fpout,
 					space_num+1);
 	dump_expression(expression->u.assign_expression.operand, fpout,
@@ -189,6 +207,14 @@ static void dump_binary_expression(Expression *expression, FILE *fpout,
 														space_num+1);
 	dump_expression(expression->u.binary_expression.right, fpout,
 														space_num+1);
+}
+
+static void dump_not_expression(Expression *expression,
+										FILE *fpout, int space_num)
+{
+	fprintf(fpout, "%sNOT_EXPRESSION\n", space_num_string(space_num));
+	dump_expression(expression->u.not_expression.sub_expr, fpout,
+													space_num+1);
 }
 
 
@@ -261,30 +287,6 @@ static void dump_null_expression(Expression *expression, FILE *fpout,
 }
 
 
-static void dump_method_call_expression(Expression *expression, 
-										FILE *fpout,
-										int space_num)
-{
-	int argument_num = 0;
-	ArgumentList *list;
-	for (list = expression->u.method_call_expression.argument;
-			list != NULL; list = list->next)
-		argument_num++;
-
-	fprintf(fpout, "%sMETHOD_CALL_EXPRESSION %s %d\n",
-			space_num_string(space_num), 
-			expression->u.method_call_expression.identifier,
-			argument_num);
-	
-	dump_expression(expression->u.method_call_expression.expression,
-			fpout, space_num+1);
-	for (list = expression->u.method_call_expression.argument;
-			list != NULL; list = list->next) {
-		fprintf(fpout, "%sARGUMENT\n", space_num_string(space_num+1));
-		dump_expression(list->expression, fpout, space_num+2);
-	}
-	
-}
 
 static void dump_array_expression(Expression *expression,
 									FILE *fpout, int space_num)
@@ -395,6 +397,9 @@ static void dump_expression(Expression *expression, FILE *fpout,
 		case LE_EXPRESSION:				// fall through
 			dump_binary_expression(expression, fpout, space_num);
 			break;
+		case NOT_EXPRESSION:
+			dump_not_expression(expression, fpout, space_num);
+			break;
 		case LOGICAL_AND_EXPRESSION:	// fall through
 		case LOGICAL_OR_EXPRESSION:
 			dump_logical_and_or_expression(expression, fpout, space_num);
@@ -407,9 +412,6 @@ static void dump_expression(Expression *expression, FILE *fpout,
 			break;
 		case NULL_EXPRESSION:
 			dump_null_expression(expression, fpout, space_num);
-			break;
-		case METHOD_CALL_EXPRESSION:
-			dump_method_call_expression(expression, fpout, space_num);
 			break;
 		case ARRAY_EXPRESSION:
 			dump_array_expression(expression, fpout, space_num);

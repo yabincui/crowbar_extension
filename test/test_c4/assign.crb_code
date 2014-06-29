@@ -1,47 +1,47 @@
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 4
 FUNCTION show
  PARAMETER str
  PARAMETER a
  PARAMETER b
  BLOCK
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
   EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
    FUNCTION_CALL_EXPRESSION 1
     FUNCTION_NAME
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
      IDENTIFIER_EXPRESSION println
     ARGUMENT
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
      ADD_EXPRESSION
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
       ADD_EXPRESSION
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
        ADD_EXPRESSION
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
         ADD_EXPRESSION
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
          IDENTIFIER_EXPRESSION str
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
          STRING_EXPRESSION ": a = "
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
         IDENTIFIER_EXPRESSION a
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
        STRING_EXPRESSION ", b = "
-#file: "native.crb"
-#line: 5
+#file: "assign.crb"
+#line: 3
       IDENTIFIER_EXPRESSION b
  END_BLOCK
 #file: "../../builtin/builtin.crb"
@@ -61,10 +61,10 @@ EXPRESSION_STATEMENT
 #line: 4
     IDENTIFIER_EXPRESSION new_object
 #file: "../../builtin/builtin.crb"
-#line: 22
+#line: 23
 EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 22
+#line: 23
  ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 5
@@ -73,7 +73,7 @@ EXPRESSION_STATEMENT
 #line: 5
    IDENTIFIER_EXPRESSION crowbar
 #file: "../../builtin/builtin.crb"
-#line: 22
+#line: 23
   CLOSURE_DEFINITION 
    PARAMETER parent
    BLOCK
@@ -109,10 +109,10 @@ EXPRESSION_STATEMENT
 #line: 7
       IDENTIFIER_EXPRESSION parent
 #file: "../../builtin/builtin.crb"
-#line: 11
+#line: 12
     EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 11
+#line: 12
      ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 8
@@ -121,7 +121,7 @@ EXPRESSION_STATEMENT
 #line: 8
        IDENTIFIER_EXPRESSION this
 #file: "../../builtin/builtin.crb"
-#line: 11
+#line: 12
       CLOSURE_DEFINITION 
        PARAMETER message
        BLOCK
@@ -171,10 +171,10 @@ EXPRESSION_STATEMENT
          IDENTIFIER_EXPRESSION e
        END_BLOCK
 #file: "../../builtin/builtin.crb"
-#line: 19
+#line: 20
     EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 19
+#line: 20
      ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 14
@@ -183,12 +183,12 @@ EXPRESSION_STATEMENT
 #line: 14
        IDENTIFIER_EXPRESSION this
 #file: "../../builtin/builtin.crb"
-#line: 19
+#line: 20
       CLOSURE_DEFINITION 
        PARAMETER o
        BLOCK
 #file: "../../builtin/builtin.crb"
-#line: 17
+#line: 18
         FOR_STATEMENT
          INIT
 #file: "../../builtin/builtin.crb"
@@ -224,11 +224,11 @@ EXPRESSION_STATEMENT
 #line: 15
             IDENTIFIER_EXPRESSION p
 #file: "../../builtin/builtin.crb"
-#line: 17
+#line: 18
          BLOCK_STATEMENT
           BLOCK
 #file: "../../builtin/builtin.crb"
-#line: 17
+#line: 18
            IF_STATEMENT NOT_HAVE_NEXT
 #file: "../../builtin/builtin.crb"
 #line: 16
@@ -261,10 +261,10 @@ EXPRESSION_STATEMENT
      IDENTIFIER_EXPRESSION this
    END_BLOCK
 #file: "../../builtin/builtin.crb"
-#line: 40
+#line: 41
 EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 40
+#line: 41
  ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 25
@@ -273,7 +273,7 @@ EXPRESSION_STATEMENT
 #line: 25
    IDENTIFIER_EXPRESSION crowbar
 #file: "../../builtin/builtin.crb"
-#line: 40
+#line: 41
   CLOSURE_DEFINITION 
    PARAMETER array
    BLOCK
@@ -306,10 +306,10 @@ EXPRESSION_STATEMENT
 #line: 27
       INT_EXPRESSION 0
 #file: "../../builtin/builtin.crb"
-#line: 29
+#line: 30
     EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 29
+#line: 30
      ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 28
@@ -318,7 +318,7 @@ EXPRESSION_STATEMENT
 #line: 28
        IDENTIFIER_EXPRESSION this
 #file: "../../builtin/builtin.crb"
-#line: 29
+#line: 30
       CLOSURE_DEFINITION 
        BLOCK
 #file: "../../builtin/builtin.crb"
@@ -335,10 +335,10 @@ EXPRESSION_STATEMENT
           INT_EXPRESSION 0
        END_BLOCK
 #file: "../../builtin/builtin.crb"
-#line: 32
+#line: 33
     EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 32
+#line: 33
      ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 31
@@ -347,7 +347,7 @@ EXPRESSION_STATEMENT
 #line: 31
        IDENTIFIER_EXPRESSION this
 #file: "../../builtin/builtin.crb"
-#line: 32
+#line: 33
       CLOSURE_DEFINITION 
        BLOCK
 #file: "../../builtin/builtin.crb"
@@ -364,10 +364,10 @@ EXPRESSION_STATEMENT
           IDENTIFIER_EXPRESSION index
        END_BLOCK
 #file: "../../builtin/builtin.crb"
-#line: 35
+#line: 36
     EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 35
+#line: 36
      ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 34
@@ -376,7 +376,7 @@ EXPRESSION_STATEMENT
 #line: 34
        IDENTIFIER_EXPRESSION this
 #file: "../../builtin/builtin.crb"
-#line: 35
+#line: 36
       CLOSURE_DEFINITION 
        BLOCK
 #file: "../../builtin/builtin.crb"
@@ -390,10 +390,10 @@ EXPRESSION_STATEMENT
           IDENTIFIER_EXPRESSION index
        END_BLOCK
 #file: "../../builtin/builtin.crb"
-#line: 38
+#line: 39
     EXPRESSION_STATEMENT
 #file: "../../builtin/builtin.crb"
-#line: 38
+#line: 39
      ASSIGN_EXPRESSION ASSIGN
 #file: "../../builtin/builtin.crb"
 #line: 37
@@ -402,7 +402,7 @@ EXPRESSION_STATEMENT
 #line: 37
        IDENTIFIER_EXPRESSION this
 #file: "../../builtin/builtin.crb"
-#line: 38
+#line: 39
       CLOSURE_DEFINITION 
        BLOCK
 #file: "../../builtin/builtin.crb"
@@ -447,303 +447,345 @@ EXPRESSION_STATEMENT
 #line: 45
    STRING_EXPRESSION "hello, crowbar
 "
-#file: "native.crb"
-#line: 1
+#file: "assign.crb"
+#line: 6
 EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 1
+#file: "assign.crb"
+#line: 6
  ASSIGN_EXPRESSION ASSIGN
-#file: "native.crb"
-#line: 1
+#file: "assign.crb"
+#line: 6
   IDENTIFIER_EXPRESSION a
-#file: "native.crb"
-#line: 1
-  INT_EXPRESSION -3
-#file: "native.crb"
-#line: 9
+#file: "assign.crb"
+#line: 6
+  INT_EXPRESSION 4
+#file: "assign.crb"
+#line: 7
 EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 9
+#file: "assign.crb"
+#line: 7
  ASSIGN_EXPRESSION ASSIGN
-#file: "native.crb"
-#line: 9
-  IDENTIFIER_EXPRESSION a
-#file: "native.crb"
-#line: 9
-  STRING_EXPRESSION "abcdegf"
-#file: "native.crb"
-#line: 10
-EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 10
- ASSIGN_EXPRESSION ASSIGN
-#file: "native.crb"
-#line: 10
+#file: "assign.crb"
+#line: 7
   IDENTIFIER_EXPRESSION b
-#file: "native.crb"
-#line: 10
-  FUNCTION_CALL_EXPRESSION 2
-   FUNCTION_NAME
-#file: "native.crb"
-#line: 10
-    MEMBER_EXPRESSION substr
-#file: "native.crb"
-#line: 10
-     IDENTIFIER_EXPRESSION a
-   ARGUMENT
-#file: "native.crb"
-#line: 10
-    INT_EXPRESSION 4
-   ARGUMENT
-#file: "native.crb"
-#line: 10
-    INT_EXPRESSION 3
-#file: "native.crb"
-#line: 11
+#file: "assign.crb"
+#line: 7
+  INT_EXPRESSION 3
+#file: "assign.crb"
+#line: 8
 EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 11
+#file: "assign.crb"
+#line: 8
  FUNCTION_CALL_EXPRESSION 3
   FUNCTION_NAME
-#file: "native.crb"
-#line: 11
+#file: "assign.crb"
+#line: 8
    IDENTIFIER_EXPRESSION show
   ARGUMENT
-#file: "native.crb"
-#line: 11
-   STRING_EXPRESSION "a="abcdegf", b = a.substr(4, 3)"
+#file: "assign.crb"
+#line: 8
+   STRING_EXPRESSION "a=4, b=3"
   ARGUMENT
-#file: "native.crb"
-#line: 11
+#file: "assign.crb"
+#line: 8
    IDENTIFIER_EXPRESSION a
   ARGUMENT
-#file: "native.crb"
-#line: 11
+#file: "assign.crb"
+#line: 8
    IDENTIFIER_EXPRESSION b
-#file: "native.crb"
-#line: 12
+#file: "assign.crb"
+#line: 9
 EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 12
- FUNCTION_CALL_EXPRESSION 1
-  FUNCTION_NAME
-#file: "native.crb"
-#line: 12
-   IDENTIFIER_EXPRESSION println
-  ARGUMENT
-#file: "native.crb"
-#line: 12
-   ADD_EXPRESSION
-#file: "native.crb"
-#line: 12
-    STRING_EXPRESSION "a.length() = "
-#file: "native.crb"
-#line: 12
-    FUNCTION_CALL_EXPRESSION 0
-     FUNCTION_NAME
-#file: "native.crb"
-#line: 12
-      MEMBER_EXPRESSION length
-#file: "native.crb"
-#line: 12
-       IDENTIFIER_EXPRESSION a
-#file: "native.crb"
-#line: 14
-EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 14
- ASSIGN_EXPRESSION ASSIGN
-#file: "native.crb"
-#line: 14
+#file: "assign.crb"
+#line: 9
+ ASSIGN_EXPRESSION ADD_ASSIGN
+#file: "assign.crb"
+#line: 9
   IDENTIFIER_EXPRESSION a
-#file: "native.crb"
+#file: "assign.crb"
+#line: 9
+  IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
+#line: 10
+EXPRESSION_STATEMENT
+#file: "assign.crb"
+#line: 10
+ FUNCTION_CALL_EXPRESSION 3
+  FUNCTION_NAME
+#file: "assign.crb"
+#line: 10
+   IDENTIFIER_EXPRESSION show
+  ARGUMENT
+#file: "assign.crb"
+#line: 10
+   STRING_EXPRESSION "a += b"
+  ARGUMENT
+#file: "assign.crb"
+#line: 10
+   IDENTIFIER_EXPRESSION a
+  ARGUMENT
+#file: "assign.crb"
+#line: 10
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
+#line: 11
+EXPRESSION_STATEMENT
+#file: "assign.crb"
+#line: 11
+ ASSIGN_EXPRESSION SUB_ASSIGN
+#file: "assign.crb"
+#line: 11
+  IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
+#line: 11
+  IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
+#line: 12
+EXPRESSION_STATEMENT
+#file: "assign.crb"
+#line: 12
+ FUNCTION_CALL_EXPRESSION 3
+  FUNCTION_NAME
+#file: "assign.crb"
+#line: 12
+   IDENTIFIER_EXPRESSION show
+  ARGUMENT
+#file: "assign.crb"
+#line: 12
+   STRING_EXPRESSION "a -= b"
+  ARGUMENT
+#file: "assign.crb"
+#line: 12
+   IDENTIFIER_EXPRESSION a
+  ARGUMENT
+#file: "assign.crb"
+#line: 12
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
+#line: 13
+EXPRESSION_STATEMENT
+#file: "assign.crb"
+#line: 13
+ ASSIGN_EXPRESSION MUL_ASSIGN
+#file: "assign.crb"
+#line: 13
+  IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
+#line: 13
+  IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 14
-  ARRAY_EXPRESSION 3
-#file: "native.crb"
+EXPRESSION_STATEMENT
+#file: "assign.crb"
 #line: 14
-   INT_EXPRESSION 1
-#file: "native.crb"
+ FUNCTION_CALL_EXPRESSION 3
+  FUNCTION_NAME
+#file: "assign.crb"
 #line: 14
-   INT_EXPRESSION 2
-#file: "native.crb"
+   IDENTIFIER_EXPRESSION show
+  ARGUMENT
+#file: "assign.crb"
 #line: 14
-   INT_EXPRESSION 3
-#file: "native.crb"
+   STRING_EXPRESSION "a *= b"
+  ARGUMENT
+#file: "assign.crb"
+#line: 14
+   IDENTIFIER_EXPRESSION a
+  ARGUMENT
+#file: "assign.crb"
+#line: 14
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 15
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 15
- FUNCTION_CALL_EXPRESSION 1
-  FUNCTION_NAME
-#file: "native.crb"
+ ASSIGN_EXPRESSION DIV_ASSIGN
+#file: "assign.crb"
 #line: 15
-   MEMBER_EXPRESSION add
-#file: "native.crb"
+  IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
 #line: 15
-    IDENTIFIER_EXPRESSION a
-  ARGUMENT
-#file: "native.crb"
-#line: 15
-   INT_EXPRESSION 4
-#file: "native.crb"
+  IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 16
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 16
- FUNCTION_CALL_EXPRESSION 1
+ FUNCTION_CALL_EXPRESSION 3
   FUNCTION_NAME
-#file: "native.crb"
+#file: "assign.crb"
 #line: 16
-   IDENTIFIER_EXPRESSION println
+   IDENTIFIER_EXPRESSION show
   ARGUMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 16
-   ADD_EXPRESSION
-#file: "native.crb"
+   STRING_EXPRESSION "a /= b"
+  ARGUMENT
+#file: "assign.crb"
 #line: 16
-    STRING_EXPRESSION "a = "
-#file: "native.crb"
+   IDENTIFIER_EXPRESSION a
+  ARGUMENT
+#file: "assign.crb"
 #line: 16
-    IDENTIFIER_EXPRESSION a
-#file: "native.crb"
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 17
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 17
- FUNCTION_CALL_EXPRESSION 1
-  FUNCTION_NAME
-#file: "native.crb"
+ ASSIGN_EXPRESSION MOD_ASSIGN
+#file: "assign.crb"
 #line: 17
-   IDENTIFIER_EXPRESSION println
-  ARGUMENT
-#file: "native.crb"
+  IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
 #line: 17
-   ADD_EXPRESSION
-#file: "native.crb"
-#line: 17
-    STRING_EXPRESSION "a.size() = "
-#file: "native.crb"
-#line: 17
-    FUNCTION_CALL_EXPRESSION 0
-     FUNCTION_NAME
-#file: "native.crb"
-#line: 17
-      MEMBER_EXPRESSION size
-#file: "native.crb"
-#line: 17
-       IDENTIFIER_EXPRESSION a
-#file: "native.crb"
+  IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 18
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 18
- FUNCTION_CALL_EXPRESSION 1
+ FUNCTION_CALL_EXPRESSION 3
   FUNCTION_NAME
-#file: "native.crb"
+#file: "assign.crb"
 #line: 18
-   MEMBER_EXPRESSION resize
-#file: "native.crb"
+   IDENTIFIER_EXPRESSION show
+  ARGUMENT
+#file: "assign.crb"
 #line: 18
-    IDENTIFIER_EXPRESSION a
+   STRING_EXPRESSION "a %= b"
   ARGUMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 18
-   INT_EXPRESSION 3
-#file: "native.crb"
-#line: 19
-EXPRESSION_STATEMENT
-#file: "native.crb"
-#line: 19
- FUNCTION_CALL_EXPRESSION 1
-  FUNCTION_NAME
-#file: "native.crb"
-#line: 19
-   IDENTIFIER_EXPRESSION println
+   IDENTIFIER_EXPRESSION a
   ARGUMENT
-#file: "native.crb"
-#line: 19
-   ADD_EXPRESSION
-#file: "native.crb"
-#line: 19
-    STRING_EXPRESSION "a = "
-#file: "native.crb"
-#line: 19
-    IDENTIFIER_EXPRESSION a
-#file: "native.crb"
+#file: "assign.crb"
+#line: 18
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 20
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 20
- FUNCTION_CALL_EXPRESSION 2
-  FUNCTION_NAME
-#file: "native.crb"
+ ASSIGN_EXPRESSION ASSIGN
+#file: "assign.crb"
 #line: 20
-   MEMBER_EXPRESSION insert
-#file: "native.crb"
+  IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
 #line: 20
-    IDENTIFIER_EXPRESSION a
-  ARGUMENT
-#file: "native.crb"
-#line: 20
-   INT_EXPRESSION 2
-  ARGUMENT
-#file: "native.crb"
-#line: 20
-   INT_EXPRESSION -3
-#file: "native.crb"
+  BOOLEAN_EXPRESSION true
+#file: "assign.crb"
 #line: 21
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 21
- FUNCTION_CALL_EXPRESSION 1
-  FUNCTION_NAME
-#file: "native.crb"
+ ASSIGN_EXPRESSION ASSIGN
+#file: "assign.crb"
 #line: 21
-   IDENTIFIER_EXPRESSION println
-  ARGUMENT
-#file: "native.crb"
+  IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 21
-   ADD_EXPRESSION
-#file: "native.crb"
+  NOT_EXPRESSION
+#file: "assign.crb"
 #line: 21
-    STRING_EXPRESSION "a = "
-#file: "native.crb"
-#line: 21
-    IDENTIFIER_EXPRESSION a
-#file: "native.crb"
+   IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
 #line: 22
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 22
- FUNCTION_CALL_EXPRESSION 1
+ FUNCTION_CALL_EXPRESSION 3
   FUNCTION_NAME
-#file: "native.crb"
+#file: "assign.crb"
 #line: 22
-   MEMBER_EXPRESSION remove
-#file: "native.crb"
-#line: 22
-    IDENTIFIER_EXPRESSION a
+   IDENTIFIER_EXPRESSION show
   ARGUMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 22
-   INT_EXPRESSION 2
-#file: "native.crb"
+   STRING_EXPRESSION "a=true, b=!a"
+  ARGUMENT
+#file: "assign.crb"
+#line: 22
+   IDENTIFIER_EXPRESSION a
+  ARGUMENT
+#file: "assign.crb"
+#line: 22
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
 #line: 23
 EXPRESSION_STATEMENT
-#file: "native.crb"
+#file: "assign.crb"
 #line: 23
- FUNCTION_CALL_EXPRESSION 1
+ ASSIGN_EXPRESSION ASSIGN
+#file: "assign.crb"
+#line: 23
+  IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
+#line: 23
+  NOT_EXPRESSION
+#file: "assign.crb"
+#line: 23
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
+#line: 24
+EXPRESSION_STATEMENT
+#file: "assign.crb"
+#line: 24
+ FUNCTION_CALL_EXPRESSION 3
   FUNCTION_NAME
-#file: "native.crb"
-#line: 23
-   IDENTIFIER_EXPRESSION println
+#file: "assign.crb"
+#line: 24
+   IDENTIFIER_EXPRESSION show
   ARGUMENT
-#file: "native.crb"
-#line: 23
-   ADD_EXPRESSION
-#file: "native.crb"
-#line: 23
-    STRING_EXPRESSION "a = "
-#file: "native.crb"
-#line: 23
-    IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
+#line: 24
+   STRING_EXPRESSION "a=!b"
+  ARGUMENT
+#file: "assign.crb"
+#line: 24
+   IDENTIFIER_EXPRESSION a
+  ARGUMENT
+#file: "assign.crb"
+#line: 24
+   IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
+#line: 25
+EXPRESSION_STATEMENT
+#file: "assign.crb"
+#line: 25
+ ASSIGN_EXPRESSION ASSIGN
+#file: "assign.crb"
+#line: 25
+  IDENTIFIER_EXPRESSION a
+#file: "assign.crb"
+#line: 25
+  NOT_EXPRESSION
+#file: "assign.crb"
+#line: 25
+   NOT_EXPRESSION
+#file: "assign.crb"
+#line: 25
+    IDENTIFIER_EXPRESSION b
+#file: "assign.crb"
+#line: 26
+EXPRESSION_STATEMENT
+#file: "assign.crb"
+#line: 26
+ FUNCTION_CALL_EXPRESSION 3
+  FUNCTION_NAME
+#file: "assign.crb"
+#line: 26
+   IDENTIFIER_EXPRESSION show
+  ARGUMENT
+#file: "assign.crb"
+#line: 26
+   STRING_EXPRESSION "a=!!b"
+  ARGUMENT
+#file: "assign.crb"
+#line: 26
+   IDENTIFIER_EXPRESSION a
+  ARGUMENT
+#file: "assign.crb"
+#line: 26
+   IDENTIFIER_EXPRESSION b

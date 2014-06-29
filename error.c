@@ -127,7 +127,7 @@ format_message(MessageFormat *format, VString *v, va_list ap)
 	// utf8 is for the source code encoding, which will not change
 	Encoding save_encoding = CRB_set_encoding(UTF8_ENCODING); 
 
-	CRB_CHAR* wstr = CRB_mbstowcs_alloc(0, format->format);
+	CRB_CHAR* wstr = CRB_mbstowcs_alloc(__FILE__, __LINE__, format->format);
 	
 
     create_message_argument(arg, ap);
@@ -212,16 +212,18 @@ crb_compile_error(CompileError id, ...)
 {
     va_list     ap;
     VString     message;
+	char		*filename;
     int         line_number;
 
     self_check();
     va_start(ap, id);
+	filename = crb_get_current_interpreter()->current_file_name;
     line_number = crb_get_current_interpreter()->current_line_number;
     crb_vstr_clear(&message);
     format_message(&crb_compile_error_message_format[id],
                    &message, ap);
 
-	fprintf(stderr, "%3d:", line_number);
+	fprintf(stderr, "%s,%3d:", filename, line_number);
 	CRB_println_wcs(stderr, message.string);
 
     va_end(ap);
@@ -230,7 +232,7 @@ crb_compile_error(CompileError id, ...)
 }
 
 void
-crb_runtime_error(int line_number, RuntimeError id, ...)
+crb_runtime_error(char *filename, int line_number, RuntimeError id, ...)
 {
     va_list     ap;
     VString     message;
@@ -241,7 +243,7 @@ crb_runtime_error(int line_number, RuntimeError id, ...)
     format_message(&crb_runtime_error_message_format[id],
                    &message, ap);
 	
-	fprintf(stderr, "%3d:", line_number);
+	fprintf(stderr, "%s,%3d:", filename, line_number);
 	CRB_println_wcs(stderr, message.string);
     va_end(ap);
 

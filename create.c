@@ -119,35 +119,34 @@ crb_alloc_expression(ExpressionType type)
 }
 
 Expression *
-crb_create_assign_expression(Expression *left, Expression *operand)
+crb_create_assign_expression(AssignType assign_type, Expression *left, 
+								Expression *operand)
 {
     Expression *exp;
 
     exp = crb_alloc_expression(ASSIGN_EXPRESSION);
+	exp->u.assign_expression.type = assign_type;
     exp->u.assign_expression.left = left;
     exp->u.assign_expression.operand = operand;
 
     return exp;
 }
 
-static Expression
-convert_value_to_expression(CRB_Value *v)
+static void convert_value_to_expression(Expression *expr, CRB_Value *v)
 {
-    Expression  expr;
 
     if (v->type == CRB_INT_VALUE) {
-        expr.type = INT_EXPRESSION;
-        expr.u.int_value = v->u.int_value;
+        expr->type = INT_EXPRESSION;
+        expr->u.int_value = v->u.int_value;
     } else if (v->type == CRB_DOUBLE_VALUE) {
-        expr.type = DOUBLE_EXPRESSION;
-        expr.u.double_value = v->u.double_value;
+        expr->type = DOUBLE_EXPRESSION;
+        expr->u.double_value = v->u.double_value;
     } else {
         DBG_assert(v->type == CRB_BOOLEAN_VALUE,
                    ("v->type..%d\n", v->type));
-        expr.type = BOOLEAN_EXPRESSION;
-        expr.u.boolean_value = v->u.boolean_value;
+        expr->type = BOOLEAN_EXPRESSION;
+        expr->u.boolean_value = v->u.boolean_value;
     }
-    return expr;
 }
 
 Expression *
@@ -162,7 +161,7 @@ crb_create_binary_expression(ExpressionType operator,
         v = crb_eval_binary_expression(crb_get_current_interpreter(),
                                        NULL, operator, left, right);
         /* Overwriting left hand expression. */
-        *left = convert_value_to_expression(&v);
+        convert_value_to_expression(left, &v);
 
         return left;
     } else {
@@ -183,7 +182,8 @@ crb_create_minus_expression(Expression *operand)
         v = crb_eval_minus_expression(crb_get_current_interpreter(),
                                       NULL, operand);
         /* Notice! Overwriting operand expression. */
-        *operand = convert_value_to_expression(&v);
+        convert_value_to_expression(operand, &v);
+
         return operand;
     } else {
         Expression      *exp;
@@ -459,20 +459,6 @@ Expression* crb_create_index_expression(Expression *array_expr,
 }
 
 
-Expression* crb_create_method_call_expression(Expression *obj_expr,
-											char *identifier,
-											ArgumentList *argument)
-{
-	Expression *expr;
-
-	expr = crb_alloc_expression(METHOD_CALL_EXPRESSION);
-	expr->u.method_call_expression.expression = obj_expr;
-	expr->u.method_call_expression.identifier = identifier;
-	expr->u.method_call_expression.argument = argument;
-
-	return expr;
-}
-
 
 Expression* crb_create_incdec_expression(ExpressionType type,
 										Expression *operand)
@@ -610,4 +596,11 @@ void crb_init_function_call_expression(Expression *expr,
 }
 
 
+Expression* crb_create_not_expression(Expression *sub_expr)
+{
+	Expression *expr;
 
+	expr = crb_alloc_expression(NOT_EXPRESSION);
+	expr->u.not_expression.sub_expr = sub_expr;
+	return expr;
+}

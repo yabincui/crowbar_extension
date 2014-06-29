@@ -48,7 +48,8 @@ void exception_build_stack_trace(CRB_Interpreter *inter,
 
 		value.type = CRB_STRING_VALUE;
 		value.u.object_value = crb_create_crowbar_string(inter,
-								CRB_mbstowcs_alloc(line_number, func_name));
+								CRB_mbstowcs_alloc(__FILE__,
+									__LINE__, func_name));
 		
 		crb_set_assoc_variable(inter, trace_assoc, "func_name",
 								value);

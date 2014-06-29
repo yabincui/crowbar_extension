@@ -107,12 +107,15 @@ CRB_NativePointerInfo* crb_get_regexp_info(void)
 }
 
 static void check_argument_count(int arg_count, int true_low_count,
-									int true_up_count)
+									int true_up_count,
+									char *filename, int line_number)
 {
 	if (arg_count < true_low_count)
-		crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
+		crb_runtime_error(filename, line_number, 
+						ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
 	else if (arg_count > true_up_count)
-		crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
+		crb_runtime_error(filename, line_number, 
+						ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
 }
 
 
@@ -497,13 +500,14 @@ static CRB_Object* split_crb_if(CRB_Interpreter *inter,
 /* implement re_search(pattern, subject [, region]) */
 static void nv_search_proc(CRB_Interpreter *inter,
 							CRB_LocalEnvironment *env,
-							int arg_count)
+							int arg_count,
+							char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
 	char *FUNC_NAME = "re_search";
 
-	check_argument_count(arg_count, 2, 3);
+	check_argument_count(arg_count, 2, 3, filename, line_number);
 
 	CRB_Object *region = NULL;
 	CRB_Value *args;
@@ -512,13 +516,15 @@ static void nv_search_proc(CRB_Interpreter *inter,
 
 	if (args[0].type != CRB_NATIVE_POINTER_VALUE ||
 			args[0].u.native_pointer.info != crb_get_regexp_info()) {
-		crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR, 
+		crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR, 
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
 	}
 	if (args[1].type != CRB_STRING_VALUE) {
-		crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR,
+		crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR,
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
@@ -526,7 +532,8 @@ static void nv_search_proc(CRB_Interpreter *inter,
 
 	if (arg_count==3) {
 		if (args[2].type != CRB_ASSOC_VALUE) {
-			crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR,
+			crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR,
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
@@ -553,13 +560,14 @@ static void nv_search_proc(CRB_Interpreter *inter,
 /* implement re_match(pattern, subject [, region]) */
 static void nv_match_proc(CRB_Interpreter *inter,
 							CRB_LocalEnvironment *env,
-							int arg_count)
+							int arg_count,
+							char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
 	char *FUNC_NAME = "re_match";
 
-	check_argument_count(arg_count, 2, 3);
+	check_argument_count(arg_count, 2, 3, filename, line_number);
 
 	CRB_Object *region = NULL;
 	CRB_Value *args;
@@ -568,13 +576,15 @@ static void nv_match_proc(CRB_Interpreter *inter,
 
 	if (args[0].type != CRB_NATIVE_POINTER_VALUE ||
 			args[0].u.native_pointer.info != crb_get_regexp_info()) {
-		crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR, 
+		crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR, 
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
 	}
 	if (args[1].type != CRB_STRING_VALUE) {
-		crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR,
+		crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR,
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
@@ -582,7 +592,8 @@ static void nv_match_proc(CRB_Interpreter *inter,
 
 	if (arg_count==3) {
 		if (args[2].type != CRB_ASSOC_VALUE) {
-			crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR,
+			crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR,
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
@@ -609,13 +620,14 @@ static void nv_match_proc(CRB_Interpreter *inter,
 /* implement re_replace(pattern, replacement, subject) */
 static void nv_replace_proc(CRB_Interpreter *inter,
 						CRB_LocalEnvironment *env,
-						int arg_count)
+						int arg_count,
+						char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
 	char *FUNC_NAME = "reg_replace";
 
-	check_argument_count(arg_count, 3, 3);
+	check_argument_count(arg_count, 3, 3, filename, line_number);
 
 	CRB_Value *args = crb_stack_peek_value(inter, arg_count-1);
 
@@ -624,7 +636,8 @@ static void nv_replace_proc(CRB_Interpreter *inter,
 			|| args[1].type != CRB_STRING_VALUE
 			|| args[2].type != CRB_STRING_VALUE) {
 			
-		crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR, 
+		crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR, 
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
@@ -650,13 +663,14 @@ static void nv_replace_proc(CRB_Interpreter *inter,
 /* implement re_replace_all(pattern, replacement, subject) */
 static void nv_replace_all_proc(CRB_Interpreter *inter,
 						CRB_LocalEnvironment *env,
-						int arg_count)
+						int arg_count,
+						char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
 	char *FUNC_NAME = "reg_replace_all";
 
-	check_argument_count(arg_count, 3, 3);
+	check_argument_count(arg_count, 3, 3, filename, line_number);
 
 	CRB_Value *args = crb_stack_peek_value(inter, arg_count-1);
 
@@ -665,7 +679,8 @@ static void nv_replace_all_proc(CRB_Interpreter *inter,
 			|| args[1].type != CRB_STRING_VALUE
 			|| args[2].type != CRB_STRING_VALUE) {
 			
-		crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR, 
+		crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR, 
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
@@ -691,20 +706,22 @@ static void nv_replace_all_proc(CRB_Interpreter *inter,
 /* implement re_split(pattern, subject) */
 static void nv_split_proc(CRB_Interpreter *inter,
 							CRB_LocalEnvironment *env,
-							int arg_count)
+							int arg_count,
+							char *filename, int line_number)
 {
 	crb_gc_disable(inter);
 
 	char *FUNC_NAME = "reg_split";
 
-	check_argument_count(2, 2, 2);
+	check_argument_count(2, 2, 2, filename, line_number);
 	
 	CRB_Value *args = crb_stack_peek_value(inter, 1);
 
 	if (args[0].type != CRB_NATIVE_POINTER_VALUE
 			|| args[0].u.native_pointer.info != crb_get_regexp_info()
 			|| args[1].type != CRB_STRING_VALUE) {
-		crb_runtime_error(0, ARGUMENT_TYPE_MISMATCH_ERR, 
+		crb_runtime_error(filename, line_number, 
+							ARGUMENT_TYPE_MISMATCH_ERR, 
 							STRING_MESSAGE_ARGUMENT,
 							"func_name", FUNC_NAME,
 							MESSAGE_ARGUMENT_END);
