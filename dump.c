@@ -12,6 +12,13 @@ static void dump_expression(Expression *expression, FILE *fpout,
 static void dump_statement(Statement *statement, FILE *fpout, 
 														int space_num);
 
+static void dump_line_number(char *filename, int line_number, FILE *fpout)
+{
+	fprintf(fpout, "#file: \"%s\"\n", filename);
+	fprintf(fpout, "#line: %d\n", line_number);
+}
+
+
 static const char* space_num_string(int space_num)
 {
 	static char space_str[41];
@@ -55,6 +62,8 @@ static void dump_function(FunctionDefinition *function_def, FILE *fpout,
 			function_def = function_def->next;
 			continue;
 		}
+		dump_line_number(function_def->filename, function_def->line_number,
+							fpout);
 		fprintf(fpout, "%sFUNCTION %s\n", space_num_string(space_num),
 				function_def->name);
 		dump_parameter(function_def->u.crowbar_f.parameter, fpout,
@@ -99,6 +108,16 @@ static void dump_string_expression(Expression *expression, FILE *fpout,
 	CRB_print_wcs(fpout, expression->u.string_value);
 	fprintf(fpout, "\"\n");
 
+}
+
+static void dump_regexp_expression(Expression *expression, FILE *fpout,
+														int space_num)
+{
+	fprintf(fpout, "%sREGEXP_EXPRESSION %%r%c",
+			space_num_string(space_num), 
+			expression->u.regexp_value->protect_char);
+	CRB_print_wcs(fpout, expression->u.regexp_value->pattern);
+	fprintf(fpout, "%c\n", expression->u.regexp_value->protect_char);
 }
 
 
@@ -218,10 +237,13 @@ static void dump_function_call_expression(Expression *expression,
 		list = list->next;
 	}
 
-	fprintf(fpout, "%sFUNCTION_CALL_EXPRESSION %s %d\n",
+	fprintf(fpout, "%sFUNCTION_CALL_EXPRESSION %d\n",
 				space_num_string(space_num), 
-				expression->u.function_call_expression.identifier,
 				argument_num);
+	fprintf(fpout, "%sFUNCTION_NAME\n", space_num_string(space_num+1));
+	dump_expression(expression->u.function_call_expression.expr,
+					fpout, space_num+2);
+
 	list = expression->u.function_call_expression.argument;
 	while (list!=NULL) {
 		fprintf(fpout, "%sARGUMENT\n", space_num_string(space_num+1));
@@ -311,9 +333,33 @@ static void dump_incdec_expression(Expression *expression,
 }
 
 
+static void dump_member_expression(Expression *expression,
+								FILE *fpout, int space_num)
+{
+	fprintf(fpout, "%sMEMBER_EXPRESSION %s\n", space_num_string(space_num),
+								expression->u.member_expression.member_name);
+	dump_expression(expression->u.member_expression.expression, fpout, space_num+1);
+}
+
+static void dump_closure_definition(Expression *expression,
+								FILE *fpout, int space_num)
+{
+	FunctionDefinition *func = expression->u.closure_definition.function;
+
+	fprintf(fpout, "%sCLOSURE_DEFINITION %s\n", space_num_string(space_num),
+			func->name ? func->name : "");
+	dump_parameter(func->u.crowbar_f.parameter, fpout,
+						space_num+1);
+	dump_block(func->u.crowbar_f.block, fpout, 
+						space_num+1);
+
+}
+
+
 static void dump_expression(Expression *expression, FILE *fpout,
 														int space_num)
 {
+	dump_line_number(expression->filename, expression->line_number, fpout);
 	switch (expression->type) {
 		case BOOLEAN_EXPRESSION:
 			dump_boolean_expression(expression, fpout, space_num);
@@ -326,6 +372,9 @@ static void dump_expression(Expression *expression, FILE *fpout,
 			break;
 		case STRING_EXPRESSION:
 			dump_string_expression(expression, fpout, space_num);
+			break;
+		case REGEXP_EXPRESSION:
+			dump_regexp_expression(expression, fpout, space_num);
 			break;
 		case IDENTIFIER_EXPRESSION:
 			dump_identifier_expression(expression, fpout, space_num);
@@ -373,6 +422,12 @@ static void dump_expression(Expression *expression, FILE *fpout,
 		case PREV_DECREMENT_EXPRESSION:		// fall through
 		case POST_DECREMENT_EXPRESSION:
 			dump_incdec_expression(expression, fpout, space_num);
+			break;
+		case MEMBER_EXPRESSION:
+			dump_member_expression(expression, fpout, space_num);
+			break;
+		case CLOSURE_DEFINITION:
+			dump_closure_definition(expression, fpout, space_num);
 			break;
 		case EXPRESSION_TYPE_COUNT_PLUS_1:	// fall through
 		default:
@@ -498,9 +553,46 @@ static void dump_block_statement(Statement *statement, FILE *fpout,
 }
 
 
+static void dump_try_statement(Statement *statement, FILE *fpout,
+										int space_num)
+{
+	fprintf(fpout, "%sTRY_STATEMENT", space_num_string(space_num));
+	if (statement->u.try_s.identifier)
+		fprintf(fpout, " %s", statement->u.try_s.identifier);
+	if (statement->u.try_s.catch_st != NULL)
+		fprintf(fpout, " WITH_CATCH");
+	if (statement->u.try_s.final_st != NULL)
+		fprintf(fpout, " WITH_FINALLY");
+	fprintf(fpout, "\n");
+
+	dump_statement(statement->u.try_s.run_st, fpout, space_num+1);
+	if (statement->u.try_s.catch_st != NULL)
+		dump_statement(statement->u.try_s.catch_st, fpout, space_num+1);
+	if (statement->u.try_s.final_st != NULL)
+		dump_statement(statement->u.try_s.final_st, fpout, space_num+1);
+}
+
+
+static void dump_throw_statement(Statement *statement, FILE *fpout,
+										int space_num)
+{
+	fprintf(fpout, "%sTHROW_STATEMENT\n", space_num_string(space_num));
+	dump_expression(statement->u.throw_s.throw_expr, fpout, space_num+1);
+}
+
+static void dump_foreach_statement(Statement *statement, FILE *fpout,
+										int space_num)
+{
+	fprintf(fpout, "%sFOREACH_STATEMENT %s\n", space_num_string(space_num),
+					statement->u.foreach_s.identifier);
+	dump_expression(statement->u.foreach_s.array_expr, fpout, space_num+1);
+	dump_statement(statement->u.foreach_s.sub_st, fpout, space_num+1);
+}
+
 
 static void dump_statement(Statement *statement, FILE *fpout, int space_num)
 {
+	dump_line_number(statement->filename, statement->line_number, fpout);
 	switch (statement->type) {
 		case EXPRESSION_STATEMENT:
 			dump_expression_statement(statement, fpout, space_num);
@@ -528,6 +620,15 @@ static void dump_statement(Statement *statement, FILE *fpout, int space_num)
 			break;
 		case BLOCK_STATEMENT:
 			dump_block_statement(statement, fpout, space_num);
+			break;
+		case TRY_STATEMENT:
+			dump_try_statement(statement, fpout, space_num);
+			break;
+		case THROW_STATEMENT:
+			dump_throw_statement(statement, fpout, space_num);
+			break;
+		case FOREACH_STATEMENT:
+			dump_foreach_statement(statement, fpout, space_num);
 			break;
 		case STATEMENT_TYPE_COUNT_PLUS_1:		// fall through
 		default:

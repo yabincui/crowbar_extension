@@ -71,3 +71,17 @@ crb_create_identifier(char *str)
     return new_str;
 }
 
+
+static char st_regexp_start_char;
+
+void crb_set_regexp_start_char(char ch)
+{
+	st_regexp_start_char = ch;
+}
+
+char crb_regexp_start_char()
+{
+	return st_regexp_start_char;
+}
+
+

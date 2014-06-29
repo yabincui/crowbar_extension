@@ -18,6 +18,9 @@ OBJS = \
   heap.o \
   gc.o \
   wchar.o \
+  fake_method.o \
+  exception.o \
+  regexp.o \
   ./memory/mem.o\
   ./debug/dbg.o
 CFLAGS = -c -g -Wall -DDEBUG #-Wswitch-enum -DDEBUG #-ansi -pedantic -DDEBUG
@@ -26,7 +29,7 @@ INCLUDES = \
 $(TARGET):$(OBJS)
 	cd ./memory; $(MAKE);
 	cd ./debug; $(MAKE);
-	$(CC) $(OBJS) -o $@ -lm
+	$(CC) $(OBJS) -o $@ -lm -lonig
 clean:
 	rm -f *.o lex.yy.c y.tab.c y.tab.h *~
 y.tab.h : crowbar.y
@@ -60,3 +63,6 @@ util.o: util.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 dump_load.o : dump_load.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 gc.o: gc.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 wchar.o: MEM.h DBG.h crowbar.h
+fake_method.o : fake_method.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
+exception.o : exception.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
+regexp.o : regexp.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h

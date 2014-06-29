@@ -1,0 +1,863 @@
+#file: "assoc.crb"
+#line: 44
+FUNCTION create_sofa
+ PARAMETER chair_num
+ BLOCK
+#file: "assoc.crb"
+#line: 36
+  EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 36
+   ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 36
+    IDENTIFIER_EXPRESSION this
+#file: "assoc.crb"
+#line: 36
+    FUNCTION_CALL_EXPRESSION 0
+     FUNCTION_NAME
+#file: "assoc.crb"
+#line: 36
+      IDENTIFIER_EXPRESSION new_object
+#file: "assoc.crb"
+#line: 39
+  EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 39
+   ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 37
+    MEMBER_EXPRESSION get_chair_num
+#file: "assoc.crb"
+#line: 37
+     IDENTIFIER_EXPRESSION this
+#file: "assoc.crb"
+#line: 39
+    CLOSURE_DEFINITION 
+     BLOCK
+#file: "assoc.crb"
+#line: 38
+      RETURN_STATEMENT HAVE_EXPR
+#file: "assoc.crb"
+#line: 38
+       IDENTIFIER_EXPRESSION chair_num
+     END_BLOCK
+#file: "assoc.crb"
+#line: 42
+  EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 42
+   ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 40
+    MEMBER_EXPRESSION type
+#file: "assoc.crb"
+#line: 40
+     IDENTIFIER_EXPRESSION this
+#file: "assoc.crb"
+#line: 42
+    CLOSURE_DEFINITION 
+     BLOCK
+#file: "assoc.crb"
+#line: 41
+      EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 41
+       FUNCTION_CALL_EXPRESSION 1
+        FUNCTION_NAME
+#file: "assoc.crb"
+#line: 41
+         IDENTIFIER_EXPRESSION print
+        ARGUMENT
+#file: "assoc.crb"
+#line: 41
+         ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 41
+          ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 41
+           STRING_EXPRESSION "sofa with "
+#file: "assoc.crb"
+#line: 41
+           IDENTIFIER_EXPRESSION chair_num
+#file: "assoc.crb"
+#line: 41
+          STRING_EXPRESSION " chairs.
+"
+     END_BLOCK
+#file: "assoc.crb"
+#line: 43
+  RETURN_STATEMENT HAVE_EXPR
+#file: "assoc.crb"
+#line: 43
+   IDENTIFIER_EXPRESSION this
+ END_BLOCK
+#file: "assoc.crb"
+#line: 16
+FUNCTION f1
+ PARAMETER v
+ BLOCK
+#file: "assoc.crb"
+#line: 13
+  EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 13
+   FUNCTION_CALL_EXPRESSION 1
+    FUNCTION_NAME
+#file: "assoc.crb"
+#line: 13
+     IDENTIFIER_EXPRESSION print
+    ARGUMENT
+#file: "assoc.crb"
+#line: 13
+     ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 13
+      ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 13
+       STRING_EXPRESSION "f1("
+#file: "assoc.crb"
+#line: 13
+       IDENTIFIER_EXPRESSION v
+#file: "assoc.crb"
+#line: 13
+      STRING_EXPRESSION ")
+"
+#file: "assoc.crb"
+#line: 16
+  IF_STATEMENT NOT_HAVE_NEXT
+#file: "assoc.crb"
+#line: 14
+   GT_EXPRESSION
+#file: "assoc.crb"
+#line: 14
+    PREV_DECREMENT_EXPRESSION
+#file: "assoc.crb"
+#line: 14
+     IDENTIFIER_EXPRESSION v
+#file: "assoc.crb"
+#line: 14
+    INT_EXPRESSION 0
+#file: "assoc.crb"
+#line: 15
+   EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 15
+    FUNCTION_CALL_EXPRESSION 1
+     FUNCTION_NAME
+#file: "assoc.crb"
+#line: 15
+      IDENTIFIER_EXPRESSION f1
+     ARGUMENT
+#file: "assoc.crb"
+#line: 15
+      IDENTIFIER_EXPRESSION v
+ END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 4
+EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 4
+ ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 4
+  IDENTIFIER_EXPRESSION crowbar
+#file: "../../builtin/builtin.crb"
+#line: 4
+  FUNCTION_CALL_EXPRESSION 0
+   FUNCTION_NAME
+#file: "../../builtin/builtin.crb"
+#line: 4
+    IDENTIFIER_EXPRESSION new_object
+#file: "../../builtin/builtin.crb"
+#line: 23
+EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 23
+ ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 5
+  MEMBER_EXPRESSION create_exception_class
+#file: "../../builtin/builtin.crb"
+#line: 5
+   IDENTIFIER_EXPRESSION crowbar
+#file: "../../builtin/builtin.crb"
+#line: 23
+  CLOSURE_DEFINITION 
+   PARAMETER parent
+   BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 6
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 6
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 6
+      IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 6
+      FUNCTION_CALL_EXPRESSION 0
+       FUNCTION_NAME
+#file: "../../builtin/builtin.crb"
+#line: 6
+        IDENTIFIER_EXPRESSION new_object
+#file: "../../builtin/builtin.crb"
+#line: 7
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 7
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 7
+      MEMBER_EXPRESSION parent
+#file: "../../builtin/builtin.crb"
+#line: 7
+       IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 7
+      IDENTIFIER_EXPRESSION parent
+#file: "../../builtin/builtin.crb"
+#line: 12
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 12
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 8
+      MEMBER_EXPRESSION create
+#file: "../../builtin/builtin.crb"
+#line: 8
+       IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 12
+      CLOSURE_DEFINITION 
+       PARAMETER message
+       BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 9
+        EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 9
+         ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 9
+          IDENTIFIER_EXPRESSION e
+#file: "../../builtin/builtin.crb"
+#line: 9
+          FUNCTION_CALL_EXPRESSION 1
+           FUNCTION_NAME
+#file: "../../builtin/builtin.crb"
+#line: 9
+            IDENTIFIER_EXPRESSION new_exception
+           ARGUMENT
+#file: "../../builtin/builtin.crb"
+#line: 9
+            IDENTIFIER_EXPRESSION message
+#file: "../../builtin/builtin.crb"
+#line: 10
+        EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 10
+         ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 10
+          MEMBER_EXPRESSION child_of
+#file: "../../builtin/builtin.crb"
+#line: 10
+           IDENTIFIER_EXPRESSION e
+#file: "../../builtin/builtin.crb"
+#line: 10
+          MEMBER_EXPRESSION child_of
+#file: "../../builtin/builtin.crb"
+#line: 10
+           IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 11
+        RETURN_STATEMENT HAVE_EXPR
+#file: "../../builtin/builtin.crb"
+#line: 11
+         IDENTIFIER_EXPRESSION e
+       END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 20
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 20
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 14
+      MEMBER_EXPRESSION child_of
+#file: "../../builtin/builtin.crb"
+#line: 14
+       IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 20
+      CLOSURE_DEFINITION 
+       PARAMETER o
+       BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 18
+        FOR_STATEMENT
+         INIT
+#file: "../../builtin/builtin.crb"
+#line: 15
+          ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 15
+           IDENTIFIER_EXPRESSION p
+#file: "../../builtin/builtin.crb"
+#line: 15
+           IDENTIFIER_EXPRESSION this
+         CONDITION
+#file: "../../builtin/builtin.crb"
+#line: 15
+          NE_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 15
+           IDENTIFIER_EXPRESSION p
+#file: "../../builtin/builtin.crb"
+#line: 15
+           NULL_EXPRESSION
+         POST
+#file: "../../builtin/builtin.crb"
+#line: 15
+          ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 15
+           IDENTIFIER_EXPRESSION p
+#file: "../../builtin/builtin.crb"
+#line: 15
+           MEMBER_EXPRESSION parent
+#file: "../../builtin/builtin.crb"
+#line: 15
+            IDENTIFIER_EXPRESSION p
+#file: "../../builtin/builtin.crb"
+#line: 18
+         BLOCK_STATEMENT
+          BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 18
+           IF_STATEMENT NOT_HAVE_NEXT
+#file: "../../builtin/builtin.crb"
+#line: 16
+            EQ_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 16
+             IDENTIFIER_EXPRESSION p
+#file: "../../builtin/builtin.crb"
+#line: 16
+             IDENTIFIER_EXPRESSION o
+#file: "../../builtin/builtin.crb"
+#line: 17
+            RETURN_STATEMENT HAVE_EXPR
+#file: "../../builtin/builtin.crb"
+#line: 17
+             BOOLEAN_EXPRESSION true
+          END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 19
+        RETURN_STATEMENT HAVE_EXPR
+#file: "../../builtin/builtin.crb"
+#line: 19
+         BOOLEAN_EXPRESSION false
+       END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 22
+    RETURN_STATEMENT HAVE_EXPR
+#file: "../../builtin/builtin.crb"
+#line: 22
+     IDENTIFIER_EXPRESSION this
+   END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 41
+EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 41
+ ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 25
+  MEMBER_EXPRESSION create_array_iterator
+#file: "../../builtin/builtin.crb"
+#line: 25
+   IDENTIFIER_EXPRESSION crowbar
+#file: "../../builtin/builtin.crb"
+#line: 41
+  CLOSURE_DEFINITION 
+   PARAMETER array
+   BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 26
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 26
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 26
+      IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 26
+      FUNCTION_CALL_EXPRESSION 0
+       FUNCTION_NAME
+#file: "../../builtin/builtin.crb"
+#line: 26
+        IDENTIFIER_EXPRESSION new_object
+#file: "../../builtin/builtin.crb"
+#line: 27
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 27
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 27
+      IDENTIFIER_EXPRESSION index
+#file: "../../builtin/builtin.crb"
+#line: 27
+      INT_EXPRESSION 0
+#file: "../../builtin/builtin.crb"
+#line: 30
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 30
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 28
+      MEMBER_EXPRESSION first
+#file: "../../builtin/builtin.crb"
+#line: 28
+       IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 30
+      CLOSURE_DEFINITION 
+       BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 29
+        EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 29
+         ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 29
+          IDENTIFIER_EXPRESSION index
+#file: "../../builtin/builtin.crb"
+#line: 29
+          INT_EXPRESSION 0
+       END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 33
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 33
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 31
+      MEMBER_EXPRESSION current_item
+#file: "../../builtin/builtin.crb"
+#line: 31
+       IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 33
+      CLOSURE_DEFINITION 
+       BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 32
+        RETURN_STATEMENT HAVE_EXPR
+#file: "../../builtin/builtin.crb"
+#line: 32
+         INDEX_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 32
+          IDENTIFIER_EXPRESSION array
+#file: "../../builtin/builtin.crb"
+#line: 32
+          IDENTIFIER_EXPRESSION index
+       END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 36
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 36
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 34
+      MEMBER_EXPRESSION next
+#file: "../../builtin/builtin.crb"
+#line: 34
+       IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 36
+      CLOSURE_DEFINITION 
+       BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 35
+        EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 35
+         POST_INCREMENT_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 35
+          IDENTIFIER_EXPRESSION index
+       END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 39
+    EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 39
+     ASSIGN_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 37
+      MEMBER_EXPRESSION is_done
+#file: "../../builtin/builtin.crb"
+#line: 37
+       IDENTIFIER_EXPRESSION this
+#file: "../../builtin/builtin.crb"
+#line: 39
+      CLOSURE_DEFINITION 
+       BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 38
+        RETURN_STATEMENT HAVE_EXPR
+#file: "../../builtin/builtin.crb"
+#line: 38
+         EQ_EXPRESSION
+#file: "../../builtin/builtin.crb"
+#line: 38
+          IDENTIFIER_EXPRESSION index
+#file: "../../builtin/builtin.crb"
+#line: 38
+          FUNCTION_CALL_EXPRESSION 0
+           FUNCTION_NAME
+#file: "../../builtin/builtin.crb"
+#line: 38
+            MEMBER_EXPRESSION size
+#file: "../../builtin/builtin.crb"
+#line: 38
+             IDENTIFIER_EXPRESSION array
+       END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 40
+    RETURN_STATEMENT HAVE_EXPR
+#file: "../../builtin/builtin.crb"
+#line: 40
+     IDENTIFIER_EXPRESSION this
+   END_BLOCK
+#file: "../../builtin/builtin.crb"
+#line: 45
+EXPRESSION_STATEMENT
+#file: "../../builtin/builtin.crb"
+#line: 45
+ FUNCTION_CALL_EXPRESSION 1
+  FUNCTION_NAME
+#file: "../../builtin/builtin.crb"
+#line: 45
+   IDENTIFIER_EXPRESSION print
+  ARGUMENT
+#file: "../../builtin/builtin.crb"
+#line: 45
+   STRING_EXPRESSION "hello, crowbar
+"
+#file: "assoc.crb"
+#line: 1
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 1
+ ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 1
+  IDENTIFIER_EXPRESSION a
+#file: "assoc.crb"
+#line: 1
+  INT_EXPRESSION 1
+#file: "assoc.crb"
+#line: 2
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 2
+ ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 2
+  IDENTIFIER_EXPRESSION a
+#file: "assoc.crb"
+#line: 2
+  FUNCTION_CALL_EXPRESSION 0
+   FUNCTION_NAME
+#file: "assoc.crb"
+#line: 2
+    IDENTIFIER_EXPRESSION new_object
+#file: "assoc.crb"
+#line: 3
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 3
+ ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 3
+  MEMBER_EXPRESSION x
+#file: "assoc.crb"
+#line: 3
+   IDENTIFIER_EXPRESSION a
+#file: "assoc.crb"
+#line: 3
+  STRING_EXPRESSION "hello, world!
+"
+#file: "assoc.crb"
+#line: 4
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 4
+ FUNCTION_CALL_EXPRESSION 1
+  FUNCTION_NAME
+#file: "assoc.crb"
+#line: 4
+   IDENTIFIER_EXPRESSION print
+  ARGUMENT
+#file: "assoc.crb"
+#line: 4
+   MEMBER_EXPRESSION x
+#file: "assoc.crb"
+#line: 4
+    IDENTIFIER_EXPRESSION a
+#file: "assoc.crb"
+#line: 8
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 8
+ ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 6
+  MEMBER_EXPRESSION y
+#file: "assoc.crb"
+#line: 6
+   IDENTIFIER_EXPRESSION a
+#file: "assoc.crb"
+#line: 8
+  CLOSURE_DEFINITION 
+   BLOCK
+#file: "assoc.crb"
+#line: 7
+    EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 7
+     FUNCTION_CALL_EXPRESSION 1
+      FUNCTION_NAME
+#file: "assoc.crb"
+#line: 7
+       IDENTIFIER_EXPRESSION print
+      ARGUMENT
+#file: "assoc.crb"
+#line: 7
+       STRING_EXPRESSION "hello, closure!
+"
+   END_BLOCK
+#file: "assoc.crb"
+#line: 10
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 10
+ FUNCTION_CALL_EXPRESSION 0
+  FUNCTION_NAME
+#file: "assoc.crb"
+#line: 10
+   MEMBER_EXPRESSION y
+#file: "assoc.crb"
+#line: 10
+    IDENTIFIER_EXPRESSION a
+#file: "assoc.crb"
+#line: 18
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 18
+ FUNCTION_CALL_EXPRESSION 1
+  FUNCTION_NAME
+#file: "assoc.crb"
+#line: 18
+   IDENTIFIER_EXPRESSION f1
+  ARGUMENT
+#file: "assoc.crb"
+#line: 18
+   INT_EXPRESSION 3
+#file: "assoc.crb"
+#line: 22
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 22
+ ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 20
+  IDENTIFIER_EXPRESSION b
+#file: "assoc.crb"
+#line: 22
+  CLOSURE_DEFINITION 
+   PARAMETER v
+   BLOCK
+#file: "assoc.crb"
+#line: 21
+    EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 21
+     FUNCTION_CALL_EXPRESSION 1
+      FUNCTION_NAME
+#file: "assoc.crb"
+#line: 21
+       IDENTIFIER_EXPRESSION print
+      ARGUMENT
+#file: "assoc.crb"
+#line: 21
+       ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 21
+        ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 21
+         STRING_EXPRESSION "hello, closure("
+#file: "assoc.crb"
+#line: 21
+         IDENTIFIER_EXPRESSION v
+#file: "assoc.crb"
+#line: 21
+        STRING_EXPRESSION ")
+"
+   END_BLOCK
+#file: "assoc.crb"
+#line: 24
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 24
+ FUNCTION_CALL_EXPRESSION 1
+  FUNCTION_NAME
+#file: "assoc.crb"
+#line: 24
+   IDENTIFIER_EXPRESSION b
+  ARGUMENT
+#file: "assoc.crb"
+#line: 24
+   STRING_EXPRESSION "b"
+#file: "assoc.crb"
+#line: 30
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 30
+ ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 26
+  IDENTIFIER_EXPRESSION c
+#file: "assoc.crb"
+#line: 30
+  CLOSURE_DEFINITION c1
+   PARAMETER v
+   BLOCK
+#file: "assoc.crb"
+#line: 27
+    EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 27
+     FUNCTION_CALL_EXPRESSION 1
+      FUNCTION_NAME
+#file: "assoc.crb"
+#line: 27
+       IDENTIFIER_EXPRESSION print
+      ARGUMENT
+#file: "assoc.crb"
+#line: 27
+       ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 27
+        ADD_EXPRESSION
+#file: "assoc.crb"
+#line: 27
+         STRING_EXPRESSION "c1("
+#file: "assoc.crb"
+#line: 27
+         IDENTIFIER_EXPRESSION v
+#file: "assoc.crb"
+#line: 27
+        STRING_EXPRESSION ")
+"
+#file: "assoc.crb"
+#line: 30
+    IF_STATEMENT NOT_HAVE_NEXT
+#file: "assoc.crb"
+#line: 28
+     GT_EXPRESSION
+#file: "assoc.crb"
+#line: 28
+      IDENTIFIER_EXPRESSION v
+#file: "assoc.crb"
+#line: 28
+      INT_EXPRESSION 0
+#file: "assoc.crb"
+#line: 29
+     EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 29
+      FUNCTION_CALL_EXPRESSION 1
+       FUNCTION_NAME
+#file: "assoc.crb"
+#line: 29
+        IDENTIFIER_EXPRESSION c1
+       ARGUMENT
+#file: "assoc.crb"
+#line: 29
+        SUB_EXPRESSION
+#file: "assoc.crb"
+#line: 29
+         IDENTIFIER_EXPRESSION v
+#file: "assoc.crb"
+#line: 29
+         INT_EXPRESSION 1
+   END_BLOCK
+#file: "assoc.crb"
+#line: 32
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 32
+ FUNCTION_CALL_EXPRESSION 1
+  FUNCTION_NAME
+#file: "assoc.crb"
+#line: 32
+   IDENTIFIER_EXPRESSION c
+  ARGUMENT
+#file: "assoc.crb"
+#line: 32
+   INT_EXPRESSION 2
+#file: "assoc.crb"
+#line: 44
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 44
+ NULL_EXPRESSION
+#file: "assoc.crb"
+#line: 47
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 47
+ ASSIGN_EXPRESSION
+#file: "assoc.crb"
+#line: 47
+  IDENTIFIER_EXPRESSION sofa_obj
+#file: "assoc.crb"
+#line: 47
+  FUNCTION_CALL_EXPRESSION 1
+   FUNCTION_NAME
+#file: "assoc.crb"
+#line: 47
+    IDENTIFIER_EXPRESSION create_sofa
+   ARGUMENT
+#file: "assoc.crb"
+#line: 47
+    INT_EXPRESSION 4
+#file: "assoc.crb"
+#line: 48
+EXPRESSION_STATEMENT
+#file: "assoc.crb"
+#line: 48
+ FUNCTION_CALL_EXPRESSION 0
+  FUNCTION_NAME
+#file: "assoc.crb"
+#line: 48
+   MEMBER_EXPRESSION type
+#file: "assoc.crb"
+#line: 48
+    IDENTIFIER_EXPRESSION sofa_obj

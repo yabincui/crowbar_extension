@@ -1,0 +1,49 @@
+a = 1;
+a = new_object();
+a.x = "hello, world!\n";
+print(a.x);
+
+a.y = closure() {
+	print("hello, closure!\n");
+};
+
+a.y();
+
+function f1(v) {
+	print("f1("+v+")\n");
+	if (--v > 0)
+		f1(v);
+}
+
+f1(3);
+
+b = closure(v) {
+	print("hello, closure("+v+")\n");
+};
+
+b("b");
+
+c = closure c1(v) {
+	print("c1("+v+")\n");
+	if (v > 0)
+		c1(v-1);
+};
+
+c(2);
+
+function create_sofa(chair_num)
+{
+	this = new_object();
+	this.get_chair_num = closure() {
+		return chair_num;
+	};
+	this.type = closure() {
+		print("sofa with "+chair_num+" chairs.\n");
+	};
+	return this;
+};
+
+
+sofa_obj = create_sofa(4);
+sofa_obj.type();
+

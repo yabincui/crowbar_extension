@@ -2,8 +2,9 @@
 #include <string.h>
 #include "CRB.h"
 #include "MEM.h"
+#include "DBG.h"
 
-#define NAME_BUF_MAX 100
+#define NAME_BUF_MAX 512
 
 static void to_crb_code_name(const char *crb_name, char *buf, int max_len)
 {
@@ -74,6 +75,38 @@ Encoding string_to_encoding(const char *type_name)
 	return type;
 }
 
+static int file_exist(char *filepath)
+{
+	FILE *fp = fopen(filepath, "r");
+	if (fp == NULL)
+		return 0;
+	fclose(fp);
+	return 1;
+}
+
+static void find_builtin_filepath(char *exec_path, char *builtin_filepath)
+{
+	char *end_p;
+
+
+	// try basename(argv[0]) + "/builtin/builtin.crb"
+	end_p = strrchr(exec_path, '/');
+	if (end_p != NULL) {
+		int len = end_p - exec_path;
+		strncpy(builtin_filepath, exec_path, len+1);
+		builtin_filepath[len+1] = '\0';
+	}
+	else {
+		builtin_filepath[0] = '\0';
+	}
+	strcat(builtin_filepath, "builtin/builtin.crb");
+	if (file_exist(builtin_filepath))
+		return;
+
+	DBG_panic(("cannot find builtin.crb in %s\n", builtin_filepath));
+
+}
+
 
 void usage()
 {
@@ -90,8 +123,8 @@ int
 main(int argc, char **argv)
 {
     CRB_Interpreter     *interpreter;
-    FILE *fp;
 
+	int include_builtin_code = 1;
 	int dump_crb_code_flag = 1;
 	int load_crb_code_flag = 1;
 	int dump2_crb_code_flag = 1;
@@ -136,28 +169,41 @@ main(int argc, char **argv)
 		exit(1);
     }
 
-    fp = fopen(source_name, "r");
-    if (fp == NULL) {
-        fprintf(stderr, "%s not found.\n", source_name);
-        exit(1);
-    }
 
 
     interpreter = CRB_create_interpreter(source_encoding, env_encoding);
-    CRB_compile(interpreter, fp);
+	//printf("CRB_compile\n");
+
+	if (include_builtin_code) {
+
+		char builtin_filename[NAME_BUF_MAX];
+		find_builtin_filepath(argv[0], builtin_filename);
+
+		CRB_compile(interpreter, builtin_filename);
+	}
+
+    int compile_result = CRB_compile(interpreter, source_name);
+
+	if (compile_result) {
+		exit(1);
+	}
+
 	if (dump_crb_code_flag)
-		dump_crb_code(interpreter, argv[1]);
+		dump_crb_code(interpreter, source_name);
+	
 
 	if (load_crb_code_flag) {
 		CRB_reset_interpreter(&interpreter);
-		load_crb_code(interpreter, argv[1]);
+		load_crb_code(interpreter, source_name);
 
 		if (dump2_crb_code_flag) {
 			dump_crb_code(interpreter, "temp.crb");
 		}
 	}
 
+	//printf("exec_flag=%d\n", exec_flag);
 	if (exec_flag) {
+		//printf("CRB_interpret\n");
 		CRB_interpret(interpreter);
 	}
 
@@ -170,7 +216,6 @@ main(int argc, char **argv)
 
     MEM_dump_blocks(stdout);
 
-	fclose(fp);
 
     return 0;
 }

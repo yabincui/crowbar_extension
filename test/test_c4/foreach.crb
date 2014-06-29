@@ -1,0 +1,64 @@
+i = 0;
+while (i < 3) {
+	println("i = " + i);
+	i++;
+}
+
+
+function f1() {
+	println("before");
+	for (i = 0; i < 3; i++) {
+		println("i = " + i);
+		continue;
+		break;
+	}
+	println("after");
+
+	i = 0;
+	println("i = " + i);
+	while (i < 3) {
+		println("i = " + i);
+		i++;
+		
+	}
+}
+f1();
+print("after f1()\n");
+
+
+a = new_object();
+
+a.call = closure() {
+	println("before");
+	for (i = 0; i < 3; i++) {
+		println("i = " + i);
+		continue;
+		break;
+	}
+	println("after");
+
+	i = 0;
+	println("i = " + i);
+	while (i < 3) {
+		println("i = " + i);
+		i++;
+	}
+
+};
+
+a.call();
+
+
+array = {1, 2, 3, 4, 5};
+it = crowbar.create_array_iterator(array);
+it = array.iterator();
+it.first();
+while (it.is_done() != true) {
+	println(it.current_item());
+	it.next();
+}
+
+
+foreach (it : array) {
+	println(it);
+}

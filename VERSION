@@ -2,6 +2,10 @@ crowbar_extension VERSION INFO
 =================================
 
 
+
+
+version 0.4:   realize object, closure, exception handling model, multiple source file, regular expression, foreach statement.
+
 version 0.3:   realize utf8 suport.
 
 version 0.2:   realize array and garbage collect.

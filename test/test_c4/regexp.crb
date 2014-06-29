@@ -1,0 +1,48 @@
+
+
+function process(regexp, string)
+{
+	region = new_object();
+	res = reg_search(regexp, string, region);
+	println("reg_search(" + regexp + ", " + string + ") = " 
+			+ res + " , " + region);
+	
+	res = reg_match(regexp, string, region);
+	println("reg_match(" + regexp + ", " + string + ") = " 
+			+ res + " , " + region);
+}
+
+function process_replace(regexp, replace, string)
+{
+	res = reg_replace(regexp, replace, string);
+	println("reg_replace(" + regexp + ", " + replace + ", " + string
+				+ ") = " + res);
+	
+	res = reg_replace_all(regexp, replace, string);
+	println("reg_replace_all(" + regexp + ", " + replace + ", " + string
+				+ ") = " + res);
+
+}
+
+
+function process_split(regexp, string)
+{
+	res = reg_split(regexp, string);
+	println("reg_split(" + regexp + ", " + string + ") = "
+			+ res);
+}
+
+process(%r"a(b*)c", "abc");
+process(%r"a(b*)cde", "acd");
+process(%r"ac", "ac");
+process(%r"ac", "acd");
+process(%r"cd", "acd");
+
+
+process_replace(%r"a", "ab", "aca");
+process_replace(%r"a(b|c)", "a\1\1\1", "aca");
+process_replace(%r"a(b|c)", "a\1\1\1", "acab");
+
+process_split(%r" ", "a b c");
+process_split(%r",", "a,b,c");
+

@@ -1,0 +1,61 @@
+function f() {
+	a = 10;
+	c1 = closure() {
+		b = 20;
+		c2 = closure() {
+			print ("a.." + a + "\n");
+			print ("b.." + b + "\n");
+		};
+		c2();
+	};
+	return c1;
+}
+
+
+a = f();
+a();
+
+function create_point(x, y) {
+	this = new_object();
+	this.x = x;
+	this.y = y;
+
+	this.print = closure()  {
+		print("(" + this.x + ", " + this.y + ")\n");
+	};
+
+	this.move = closure(x_vec, y_vec) {
+		this.x = this.x + x_vec;
+		this.y = this.y + y_vec;
+	};
+	return this;
+}
+
+
+p = create_point(10, 20);
+p.move(5, 3);
+p.print();
+
+
+function create_extended_point(x, y) {
+	this = create_point(x, y);
+
+	this.print = closure() {
+		print("**override** (" + this.x + ", " + this.y + ")\n");
+	};
+	return this;
+}
+
+
+q = create_extended_point(10, 20);
+q.move(5, 3);
+q.print();
+
+
+a = new_array();
+a.add(3);
+a.add(4);
+
+print(""+a+"\n");
+
+print("hello\n");

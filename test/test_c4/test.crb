@@ -1,0 +1,9 @@
+
+println("hello, println");
+
+assoc = new_object();
+assoc.x = "x";
+assoc.y = 1;
+
+println(assoc);
+

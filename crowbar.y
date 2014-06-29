@@ -17,12 +17,13 @@
 }
 %token <expression>     INT_LITERAL
 %token <expression>     DOUBLE_LITERAL
-%token <expression>     STRING_LITERAL
+%token <expression>     STRING_LITERAL REGEXP_LITERAL
 %token <identifier>     IDENTIFIER
 %token FUNCTION IF ELSE ELSIF WHILE FOR RETURN_T BREAK CONTINUE NULL_T
         LP RP LC RC SEMICOLON COMMA ASSIGN LOGICAL_AND LOGICAL_OR
         EQ NE GT GE LT LE ADD SUB MUL DIV MOD TRUE_T FALSE_T GLOBAL_T
-		LB RB DOT INCREMENT DECREMENT
+		LB RB DOT INCREMENT DECREMENT CLOSURE TRY CATCH FINALLY THROW
+		FOREACH COLON
 %type   <parameter_list> parameter_list
 %type   <argument_list> argument_list
 %type   <expression> expression expression_opt
@@ -30,10 +31,11 @@
         equality_expression relational_expression
         additive_expression multiplicative_expression
         unary_expression postfix_expression primary_expression
-		array_literal expression_or_array_literal
+		array_literal expression_or_array_literal closure_definition
 %type   <statement> statement global_statement
         if_statement while_statement for_statement
         return_statement break_statement continue_statement block_statement
+		try_statement throw_statement foreach_statement
 %type   <statement_list> statement_list
 %type   <block> block
 %type   <elsif> elsif elsif_list
@@ -199,13 +201,13 @@ postfix_expression
 		{	
 			$$ = crb_create_index_expression($1, $3);
 		}
-		| postfix_expression DOT IDENTIFIER LP argument_list RP
+		| postfix_expression LP argument_list RP
 		{
-			$$ = crb_create_method_call_expression($1, $3, $5);
+			$$ = crb_create_function_call_expression($1, $3);
 		}
-		| postfix_expression DOT IDENTIFIER LP RP
+		| postfix_expression LP RP
 		{
-			$$ = crb_create_method_call_expression($1, $3, NULL);
+			$$ = crb_create_function_call_expression($1, NULL);
 		}
 		| postfix_expression INCREMENT
 		{
@@ -217,18 +219,14 @@ postfix_expression
 			$$ = crb_create_incdec_expression(POST_DECREMENT_EXPRESSION,
 												$1);
 		}
+		| postfix_expression DOT IDENTIFIER
+		{	
+			$$ = crb_create_member_expression($1, $3);
+		}
 		;
 
 primary_expression
-        : IDENTIFIER LP argument_list RP
-        {
-            $$ = crb_create_function_call_expression($1, $3);
-        }
-        | IDENTIFIER LP RP
-        {
-            $$ = crb_create_function_call_expression($1, NULL);
-        }
-        | LP expression RP
+        : LP expression RP
         {
             $$ = $2;
         }
@@ -251,7 +249,29 @@ primary_expression
         {
             $$ = crb_create_null_expression();
         }
+		| closure_definition
+		| REGEXP_LITERAL
         ;
+
+closure_definition
+		: CLOSURE LP RP block
+		{
+			$$ = crb_create_closure_definition(NULL, NULL, $4);
+		}
+		| CLOSURE LP parameter_list RP block
+		{
+			$$ = crb_create_closure_definition(NULL, $3, $5);
+		}
+		| CLOSURE IDENTIFIER LP RP block
+		{
+			$$ = crb_create_closure_definition($2, NULL, $5);
+		}
+		| CLOSURE IDENTIFIER LP parameter_list RP block
+		{
+			$$ = crb_create_closure_definition($2, $4, $6);
+		}
+		;
+
 
 array_literal
 		: LC expression_list RC
@@ -302,6 +322,9 @@ statement
         | break_statement
         | continue_statement
 		| block_statement
+		| try_statement
+		| throw_statement
+		| foreach_statement
         ;
 global_statement
         : GLOBAL_T identifier_list SEMICOLON
@@ -405,4 +428,47 @@ block
             $$ = crb_create_block(NULL);
         }
         ;
+
+try_statement
+		: TRY block CATCH LP IDENTIFIER RP block FINALLY block
+		{
+			$$ = crb_create_try_statement(
+					crb_create_block_statement($2), 
+					$5, 
+					crb_create_block_statement($7), 
+					crb_create_block_statement($9));
+		}
+		| TRY block CATCH LP IDENTIFIER RP block
+		{
+			$$ = crb_create_try_statement(
+					crb_create_block_statement($2), 
+					$5, 
+					crb_create_block_statement($7), 
+					NULL);
+		}
+		| TRY block FINALLY block
+		{
+			$$ = crb_create_try_statement(
+					crb_create_block_statement($2), 
+					NULL, 
+					NULL, 
+					crb_create_block_statement($4));
+		}
+		;
+
+throw_statement
+		: THROW expression SEMICOLON
+		{
+			$$ = crb_create_throw_statement($2);
+		}
+		;
+
+
+foreach_statement
+		: FOREACH LP IDENTIFIER COLON expression_or_array_literal RP statement
+		{
+			$$ = crb_create_foreach_statement($3, $5, $7);
+		}
+		;
+
 %%

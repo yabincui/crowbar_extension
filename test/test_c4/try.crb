@@ -1,0 +1,18 @@
+
+try {
+	print("hello\n");
+
+	e = new_exception("exception");
+	throw e;
+
+} catch (e) {
+	
+	print("catch\n");
+	e.print_stack_trace();
+	throw e;
+
+} finally {
+
+	print("finally\n");
+
+}

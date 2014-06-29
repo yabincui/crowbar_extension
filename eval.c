@@ -53,8 +53,7 @@ static void shrink_stack(CRB_Interpreter *inter, int shrink_size)
 	DBG_assert(inter->stack.stack_pointer >= shrink_size && shrink_size>=0,
 			("shrink_stack with stack_pointer..%d, shrink_size..%d\n",
 			 inter->stack.stack_pointer, shrink_size));
-
-
+	inter->stack.stack_pointer -= shrink_size;
 }
 
 
@@ -106,6 +105,17 @@ eval_string_expression(CRB_Interpreter *inter, CRB_CHAR *string_value)
     push_value(inter, &v);
 }
 
+static void eval_regexp_expression(CRB_Interpreter *inter, 
+									CRB_Regexp *regexp)
+{
+	CRB_Value v;
+	v.type = CRB_NATIVE_POINTER_VALUE;
+	v.u.native_pointer.info = crb_get_regexp_info();
+	v.u.native_pointer.pointer = (void*)regexp;
+
+	push_value(inter, &v);
+}
+
 static void
 eval_null_expression(CRB_Interpreter *inter)
 {
@@ -117,7 +127,7 @@ eval_null_expression(CRB_Interpreter *inter)
 }
 
 
-
+/*
 static Variable *
 search_global_variable_from_env(CRB_Interpreter *inter,
                                 CRB_LocalEnvironment *env, char *name)
@@ -128,7 +138,8 @@ search_global_variable_from_env(CRB_Interpreter *inter,
         return crb_search_global_variable(inter, name);
     }
 
-    for (pos = env->global_variable; pos; pos = pos->next) {
+    for (pos = env->environ_scope->u.scope_chain.global_ref; 
+			pos; pos = pos->next) {
         if (!strcmp(pos->variable->name, name)) {
             return pos->variable;
         }
@@ -136,30 +147,26 @@ search_global_variable_from_env(CRB_Interpreter *inter,
 
     return NULL;
 }
+*/
 
 static void
 eval_identifier_expression(CRB_Interpreter *inter,
                            CRB_LocalEnvironment *env, Expression *expr)
 {
-    CRB_Value   v;
-    Variable    *vp;
+    Variable   *variable;
 
-    vp = crb_search_local_variable(env, expr->u.identifier);
-    if (vp != NULL) {
-        v = vp->value;
-    } else {
-        vp = search_global_variable_from_env(inter, env, expr->u.identifier);
-        if (vp != NULL) {
-            v = vp->value;
-        } else {
-            crb_runtime_error(expr->line_number, VARIABLE_NOT_FOUND_ERR,
+	variable = crb_search_local_variable(inter,
+			env, expr->u.identifier, CRB_FALSE);
+
+	if (variable == NULL) {
+    	crb_runtime_error(expr->line_number, VARIABLE_NOT_FOUND_ERR,
                               STRING_MESSAGE_ARGUMENT,
                               "name", expr->u.identifier,
                               MESSAGE_ARGUMENT_END);
-        }
+        
     }
 
-    push_value(inter, &v);
+    push_value(inter, &(variable->value));
 }
 
 static void eval_expression(CRB_Interpreter *inter, 
@@ -170,25 +177,13 @@ static CRB_Value* get_identifier_lvalue(CRB_Interpreter *inter,
 										CRB_LocalEnvironment *env,
 										char *identifier)
 {
-	Variable *new_var;
-	Variable *left;
 
-	left = crb_search_local_variable(env, identifier);
-	if (left == NULL)
-		left = search_global_variable_from_env(inter, env, identifier);
-	if (left != NULL)
-		return &left->value;
+	Variable *variable;
 
-	CRB_Value value;
-	value.type = CRB_NULL_VALUE;
+	variable = crb_search_local_variable(inter,
+			env, identifier, CRB_TRUE);
 
-	if (env != NULL)
-		new_var = crb_add_local_variable(env, identifier, &value);
-	else
-		new_var = CRB_add_global_variable(inter, identifier, &value);
-
-	left = new_var;
-	return &left->value;
+	return &(variable->value);
 }
 
 
@@ -231,6 +226,41 @@ static CRB_Value* get_array_element_lvalue(CRB_Interpreter *inter,
 }
 
 
+static CRB_Value* get_member_expression_lvalue(CRB_Interpreter *inter,
+											CRB_LocalEnvironment *env,
+											Expression *expr,
+											CRB_Boolean can_create)
+{
+	CRB_Value *ret_val = NULL;
+	
+
+	eval_expression(inter, env, expr->u.member_expression.expression);
+	CRB_Value *left_val = peek_stack(inter, 0);
+
+	if (left_val->type != CRB_ASSOC_VALUE)
+		crb_runtime_error(expr->line_number, MEMBER_OPERATION_NOT_ASSOC_ERR,
+				MESSAGE_ARGUMENT_END);
+
+	if (left_val->type == CRB_ASSOC_VALUE) {
+		Variable *variable = crb_search_assoc_variable(inter, 
+							left_val->u.object_value, 
+							expr->u.member_expression.member_name,
+							can_create);
+		if (variable != NULL)
+			ret_val = &(variable->value);
+		else {
+			crb_runtime_error(expr->line_number, NO_SUCH_MEMBER_ERR,
+					STRING_MESSAGE_ARGUMENT, "member_name",
+					expr->u.member_expression.member_name,
+					MESSAGE_ARGUMENT_END);
+		}
+	}
+
+	// we have to put assoc on the stack to retain it!!!
+	return ret_val;
+}
+
+
 static CRB_Value* get_lvalue(CRB_Interpreter *inter,
 							CRB_LocalEnvironment *env,
 							Expression *expr)
@@ -241,6 +271,8 @@ static CRB_Value* get_lvalue(CRB_Interpreter *inter,
 		dest = get_identifier_lvalue(inter, env, expr->u.identifier);
 	else if (expr->type == INDEX_EXPRESSION)
 		dest = get_array_element_lvalue(inter, env, expr);
+	else if (expr->type == MEMBER_EXPRESSION)
+		dest = get_member_expression_lvalue(inter, env, expr, CRB_TRUE);
 	else
 		crb_runtime_error(expr->line_number, NOT_LVALUE_ERR,
 						MESSAGE_ARGUMENT_END);
@@ -266,6 +298,8 @@ eval_assign_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
 	*dest = *src;
 	if (left->type == INDEX_EXPRESSION)
 		pop_value(inter); // pop the array value after assignment
+	else if (left->type == MEMBER_EXPRESSION)
+		pop_value(inter); // pop the assoc value after assignment
 
 }
 
@@ -567,6 +601,8 @@ eval_binary_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                                left->line_number);
     } else {
         char *op_str = crb_get_operator_string(operator);
+		printf("operator=%d, %s, left_type=%d, right_type=%d\n",
+				operator, op_str, left_val->type, right_val->type);
         crb_runtime_error(left->line_number, BAD_OPERAND_TYPE_ERR,
                           STRING_MESSAGE_ARGUMENT, "operator", op_str,
                           MESSAGE_ARGUMENT_END);
@@ -672,14 +708,20 @@ CRB_Value crb_eval_minus_expression(CRB_Interpreter *inter,
 
 
 static CRB_LocalEnvironment *
-alloc_local_environment(CRB_Interpreter *inter)
+alloc_local_environment(CRB_Interpreter *inter, CRB_Object *prev_scope,
+						CRB_Boolean is_closure,
+						int line_number, char *func_name)
 {
     CRB_LocalEnvironment *ret;
-	//printf("before MEM_malloc\n");
     ret = MEM_malloc(sizeof(CRB_LocalEnvironment));
-	//printf("after MEM_malloc\n");
-    ret->variable = NULL;
-    ret->global_variable = NULL;
+
+	if (prev_scope == NULL)
+		prev_scope = inter->top_env->environ_scope;
+
+    ret->environ_scope = crb_create_scope_chain(inter, prev_scope,
+												is_closure);
+	ret->caller_line_number = line_number;
+	ret->func_name = func_name;
 	ret->parent_env = inter->top_env;
 	inter->top_env = ret;
 
@@ -695,18 +737,6 @@ dispose_local_environment(CRB_Interpreter *inter)
 	CRB_LocalEnvironment *env = inter->top_env;
 	inter->top_env = env->parent_env;
 
-    while (env->variable) {
-        Variable        *temp;
-        temp = env->variable;
-        env->variable = temp->next;
-        MEM_free(temp);
-    }
-    while (env->global_variable) {
-        GlobalVariableRef *ref;
-        ref = env->global_variable;
-        env->global_variable = ref->next;
-        MEM_free(ref);
-    }
 
     MEM_free(env);
 }
@@ -748,6 +778,8 @@ call_crowbar_function(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
     ArgumentList        *arg_p;
     ParameterList       *param_p;
 
+
+
     for (arg_p = expr->u.function_call_expression.argument,
              param_p = func->u.crowbar_f.parameter;
          arg_p;
@@ -760,7 +792,10 @@ call_crowbar_function(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
         }
         eval_expression(inter, caller_env, arg_p->expression);
         arg_val = peek_stack(inter, 0);
-		crb_add_local_variable(env, param_p->name, arg_val);
+		Variable *variable = crb_search_scope_variable(inter,
+								env->environ_scope, param_p->name, 
+								CRB_TRUE);
+		variable->value = *arg_val;
 		pop_value(inter);
     }
     if (param_p) {
@@ -784,24 +819,79 @@ eval_function_call_expression(CRB_Interpreter *inter,
 								CRB_LocalEnvironment *env,
                               	Expression *expr)
 {
-    FunctionDefinition  *func;
+    FunctionDefinition  *func = NULL;
+	CRB_Boolean is_closure = CRB_FALSE;
+	CRB_Value value;
+	CRB_Object *prev_scope = NULL;
+	FunctionDefinition fake_function;
+	CRB_Boolean is_fake_method = CRB_FALSE;
+
 	CRB_LocalEnvironment *local_env;
+	
 
-    
-    char *identifier = expr->u.function_call_expression.identifier;
+	Expression *function_name_expr = expr->u.function_call_expression.expr;
 
-	//printf("call function %s\n", identifier);
+	if (function_name_expr->type == IDENTIFIER_EXPRESSION) {
+    	char *identifier = function_name_expr->u.identifier;
 
-    func = crb_search_function(identifier);
-    if (func == NULL) {
-        crb_runtime_error(expr->line_number, FUNCTION_NOT_FOUND_ERR,
-                          STRING_MESSAGE_ARGUMENT, "name", identifier,
+    	func = crb_search_function(identifier);
+	}
+
+	if (func == NULL) {
+		eval_expression(inter, env, function_name_expr);
+		CRB_Value *pv;
+
+		pv = peek_stack(inter, 0);
+
+		if (pv->type == CRB_CLOSURE_VALUE) {
+			is_closure = CRB_TRUE;
+			value = *pv;
+			func = pv->u.closure_value.closure_expr->u.closure_definition.function;
+			prev_scope = pv->u.closure_value.scope_obj;
+		}
+		else if (pv->type == CRB_FAKE_METHOD_VALUE) {
+			fake_function = crb_get_fake_method_definition(*pv);
+			func = &fake_function;
+			is_fake_method = CRB_TRUE;
+			value = *pv;
+		}
+		pop_value(inter);
+	}
+
+	if (func == NULL) {
+		crb_runtime_error(expr->line_number, FUNCTION_NOT_FOUND_ERR,
+                          STRING_MESSAGE_ARGUMENT, "name", "",
                           MESSAGE_ARGUMENT_END);
-    }
+	}
+
+	//printf("call function %d, name_expr->type=%d\n", func->type,
+	//		function_name_expr->type);
 
 	//printf("before alloc_local_environment\n");
-	local_env = alloc_local_environment(inter);
+	local_env = alloc_local_environment(inter, prev_scope, is_closure,
+										expr->line_number, func->name);
 	//printf("after alloc_local_environment\n");
+
+	//printf("call function %s\n", func->name ? func->name : "unknown");
+
+	if (is_closure) {
+		if (func->name != NULL) {
+			// add the closure name to scope
+			Variable *variable = crb_search_scope_variable(
+					inter, local_env->environ_scope, func->name,
+					CRB_TRUE);
+			variable->value = value;
+		}
+	}
+	else if (is_fake_method) {
+		Variable *variable = crb_search_scope_variable(
+				inter, local_env->environ_scope, "this",
+				CRB_TRUE);
+		variable->value.type = crb_object_type_to_value_type(
+								value.u.fake_method.object->type);
+		variable->value.u.object_value = value.u.fake_method.object;
+	}
+
 
     switch (func->type) {
     case CROWBAR_FUNCTION_DEFINITION:
@@ -902,6 +992,9 @@ static void eval_method_call_expression(CRB_Interpreter *inter,
 					identifier, MESSAGE_ARGUMENT_END);
 		}
 	}
+	else if (left->type == CRB_ASSOC_VALUE) {
+		
+	}
 	else {
 		crb_runtime_error(expr->line_number, NO_SUCH_METHOD_ERR,
 				STRING_MESSAGE_ARGUMENT, "method_name",
@@ -986,6 +1079,64 @@ static void eval_incdec_expression(CRB_Interpreter *inter,
 
 }
 
+
+static void eval_member_expression(CRB_Interpreter *inter,
+								CRB_LocalEnvironment *env,
+								Expression *expr)
+{
+	CRB_Value *ret_val = NULL;
+	CRB_Value fake_method_value;
+	
+
+	eval_expression(inter, env, expr->u.member_expression.expression);
+	CRB_Value *left_val = peek_stack(inter, 0);
+
+
+	if (left_val->type == CRB_ASSOC_VALUE) {
+		Variable *variable = crb_search_assoc_variable(inter, 
+							left_val->u.object_value, 
+							expr->u.member_expression.member_name,
+							CRB_FALSE);
+		if (variable != NULL)
+			ret_val = &(variable->value);
+	}
+
+	if (ret_val == NULL && dkc_is_object_value(left_val->type)) {
+		fake_method_value.type = CRB_FAKE_METHOD_VALUE;
+		fake_method_value.u.fake_method.method_name = 
+				expr->u.member_expression.member_name;
+		fake_method_value.u.fake_method.object = left_val->u.object_value;
+		fake_method_value.u.fake_method.line_number = expr->line_number;
+
+		ret_val = &fake_method_value;
+	}
+
+	if (ret_val == NULL) {
+		crb_runtime_error(expr->line_number, 
+				MEMBER_OPERATION_NOT_ASSOC_ERR,
+				MESSAGE_ARGUMENT_END);
+		
+	}
+
+	// change the stack top value
+	*left_val = *ret_val; 
+}
+
+
+
+static void eval_closure_definition(CRB_Interpreter *inter,
+								CRB_LocalEnvironment *env,
+								Expression *expr)
+{
+	CRB_Value value;
+	
+	value.type = CRB_CLOSURE_VALUE;
+	value.u.closure_value.closure_expr = expr;
+	value.u.closure_value.scope_obj = env->environ_scope;
+	push_value(inter, &value);
+}
+
+
 static void
 eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                 Expression *expr)
@@ -1004,6 +1155,9 @@ eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
     case STRING_EXPRESSION:
         eval_string_expression(inter, expr->u.string_value);
         break;
+	case REGEXP_EXPRESSION:
+		eval_regexp_expression(inter, expr->u.regexp_value);
+		break;
     case IDENTIFIER_EXPRESSION:
         eval_identifier_expression(inter, env, expr);
         break;
@@ -1058,6 +1212,12 @@ eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
 	case POST_DECREMENT_EXPRESSION:
 		eval_incdec_expression(inter, env, expr);
 		break;
+	case MEMBER_EXPRESSION:
+		eval_member_expression(inter, env, expr);
+		break;
+	case CLOSURE_DEFINITION:
+		eval_closure_definition(inter, env, expr);
+		break;
     case EXPRESSION_TYPE_COUNT_PLUS_1:  /* FALLTHRU */
     default:
         DBG_panic(("bad case. type..%d\n", expr->type));
@@ -1072,6 +1232,13 @@ crb_eval_expression(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
 {
     eval_expression(inter, env, expr);
 	return pop_value(inter);
+}
+
+CRB_Value* crb_eval_and_peek_expression(CRB_Interpreter *inter,
+					CRB_LocalEnvironment *env, Expression *expr)
+{
+	eval_expression(inter, env, expr);
+	return peek_stack(inter, 0);
 }
 
 
@@ -1100,3 +1267,11 @@ void crb_stack_shrink_size(CRB_Interpreter *inter, int shrink_size)
 
 
 
+
+void crb_eval_function_call_expression(CRB_Interpreter *inter,
+								CRB_LocalEnvironment *env,
+                              	Expression *expr)
+{
+	eval_function_call_expression(inter, env, expr);
+
+}

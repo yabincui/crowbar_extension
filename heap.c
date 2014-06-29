@@ -20,6 +20,9 @@ static CRB_Object* alloc_object(CRB_Interpreter *inter, ObjectType type)
 	//printf("inter->heap.header = 0x%x\n", inter->heap.header);
 	if (object->next)
 		object->next->prev = object;
+
+	//printf("object(0x%x) , type = %d\n", object, type);
+
 	return object;
 }
 
@@ -87,6 +90,21 @@ CRB_Object* crb_create_crowbar_string(CRB_Interpreter *inter, CRB_CHAR *str)
 	inter->heap.current_heap_size += sizeof(CRB_CHAR) * (CRB_wcslen(str)+1);
 
 	return object;
+}
+
+CRB_Object* crb_string_substr(CRB_Interpreter *inter, CRB_Object *obj,
+								int begin, int len)
+{
+	DBG_assert(obj->type == STRING_OBJECT, (""));
+	int orig_len = CRB_wcslen(obj->u.string.string);
+	DBG_assert(orig_len >= begin + len, (""));
+
+	CRB_CHAR *str = MEM_malloc(sizeof(CRB_CHAR)*(len+1));
+	CRB_wcsncpy(str, obj->u.string.string + begin, len);
+	str[len] = L'\0';
+
+	return crb_create_crowbar_string(inter, str);
+
 }
 
 
@@ -190,4 +208,171 @@ void crb_array_resize(CRB_Interpreter *inter, CRB_Object *obj, int new_size)
 
 }
 
+void crb_array_set(CRB_Interpreter *inter, CRB_Object *obj,
+					int pos, CRB_Value *val)
+{
+	obj->u.array.array[pos] = *val;
+}
 
+
+CRB_Object* crb_create_assoc(CRB_Interpreter *inter)
+{
+	CRB_Object *obj = alloc_object(inter, ASSOC_OBJECT);
+	obj->u.assoc.member_count = 0;
+	obj->u.assoc.member = NULL;
+	return obj;
+}
+
+
+CRB_Object* crb_create_scope_chain(CRB_Interpreter *inter,
+									CRB_Object *prev_scope,
+									CRB_Boolean is_closure)
+{
+	CRB_Value value;
+
+	value.type = CRB_SCOPE_CHAIN_VALUE;
+
+	CRB_Object *obj = alloc_object(inter, SCOPE_CHAIN_OBJECT);
+
+	value.u.object_value = obj;
+	/* protect the obj from gc */
+	crb_stack_push_value(inter, &value);
+
+	obj->u.scope_chain.assoc_namespace = NULL;
+	obj->u.scope_chain.global_ref = NULL;
+	obj->u.scope_chain.prev_scope = prev_scope;
+	obj->u.scope_chain.is_closure = is_closure;
+	
+	obj->u.scope_chain.assoc_namespace = crb_create_assoc(inter);
+
+	crb_stack_shrink_size(inter, 1);
+
+	return obj;
+}
+
+
+CRB_Boolean crb_add_scope_global_ref(CRB_Interpreter *inter, 
+								CRB_Object *scope,
+								char *identifier)
+{
+	GlobalVariableRef *ref_pos;
+
+	for (ref_pos = scope->u.scope_chain.global_ref; 
+				ref_pos != NULL; ref_pos = ref_pos->next) {
+		if (!strcmp(ref_pos->variable->name, identifier))
+			break;
+	}
+
+	if (ref_pos == NULL) {
+		GlobalVariableRef *new_ref;
+		Variable *variable;
+
+		variable = crb_search_global_variable(inter, identifier);
+		if (variable == NULL) {
+			return CRB_FALSE;
+		}
+
+		new_ref = MEM_malloc(sizeof(GlobalVariableRef));
+		new_ref->variable = variable;
+		new_ref->next = scope->u.scope_chain.global_ref;
+		scope->u.scope_chain.global_ref = new_ref;
+		inter->heap.current_heap_size += sizeof(GlobalVariableRef);
+	}
+
+	return CRB_TRUE;
+
+}
+
+
+Variable* crb_search_assoc_variable(CRB_Interpreter *inter,
+										CRB_Object *assoc,
+										char *identifier,
+										CRB_Boolean can_create)
+{
+	Variable *member;
+	for (member = assoc->u.assoc.member; member != NULL;
+			member = member->next) {
+		if (strcmp(member->name, identifier)==0)
+			return member;
+	}
+
+	if (can_create) {
+		member = MEM_malloc(sizeof(Variable));
+		member->name = identifier;
+		member->value.type = CRB_NULL_VALUE;
+		member->next = assoc->u.assoc.member;
+		assoc->u.assoc.member = member;
+		assoc->u.assoc.member_count++;
+		inter->heap.current_heap_size += sizeof(Variable);
+		return member;
+	}
+
+	return NULL;
+}
+
+void crb_set_assoc_variable(CRB_Interpreter *inter,
+							CRB_Object *assoc,
+							char *identifier, CRB_Value value)
+{
+	Variable *variable = crb_search_assoc_variable(inter, assoc,
+											identifier, CRB_TRUE);
+
+	variable->value = value;
+}
+
+
+Variable* crb_search_scope_variable(CRB_Interpreter *inter,
+										CRB_Object *scope,
+										char *identifier,
+										CRB_Boolean can_create)
+{
+	GlobalVariableRef *ref_pos;
+	//printf("crb_search_scope_variable(%s)\n", identifier);
+
+	for (ref_pos = scope->u.scope_chain.global_ref;
+			ref_pos != NULL; ref_pos = ref_pos->next) {
+		if (strcmp(ref_pos->variable->name, identifier)==0) {
+			return ref_pos->variable;
+		}
+	}
+
+	return crb_search_assoc_variable(inter, 
+				scope->u.scope_chain.assoc_namespace, identifier,
+				can_create);
+
+}
+
+void crb_remove_assoc_variable(CRB_Interpreter *inter,
+							CRB_Object *assoc,
+							char *identifier)
+{
+	Variable *prev_var, *var;
+	prev_var = NULL;
+
+	for (var = assoc->u.assoc.member; var != NULL; 
+						prev_var = var, var = var->next) {
+		if (strcmp(var->name, identifier)==0)
+			break;
+	}
+	if (var != NULL) {
+		if (prev_var == NULL)
+			assoc->u.assoc.member = var->next;
+		else
+			prev_var->next = var->next;
+
+		assoc->u.assoc.member_count--;
+		MEM_free(var);
+		inter->heap.current_heap_size -= sizeof(Variable);
+	}
+}
+
+
+void crb_remove_scope_variable(CRB_Interpreter *inter,
+							CRB_Object *scope,
+							char *identifier)
+{
+	CRB_Object *assoc = scope->u.scope_chain.assoc_namespace;
+	if (assoc)
+		crb_remove_assoc_variable(inter, assoc, identifier);
+
+}

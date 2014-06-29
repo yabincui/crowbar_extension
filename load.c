@@ -41,17 +41,28 @@ static int line_to_arguments(char *line, char **args, int max_arg_num)
 {
 	int i;
 	char *p = line;
-	int in_string = 0;
+	int in_string = 0, in_regexp = 0;
+	char regexp_protect_char = 0;
 
 	for (i=0; i<max_arg_num-1; ) {
 		while (isspace(*p)) p++;
 		if (*p=='\0') break;
 		args[i] = p;
-		while ((!isspace(*p) || in_string) && *p!='\0') {
+		while ((!isspace(*p) || in_string || in_regexp) && *p!='\0') {
 			if (*p == '\"') {
 				if (p==line || *(p-1)!='\\')
 					in_string = !in_string;
 			}
+
+			if (!in_string && !in_regexp && p!=line && p!=(line+1) 
+					&& (*(p-2)=='%') && (*(p-1)=='r')) {
+				in_regexp = 1;
+				regexp_protect_char = *p;
+			}
+			else if (in_regexp && regexp_protect_char == *p) {
+				in_regexp = 0;
+			}
+
 			p++;
 		}
 		i++;
@@ -113,11 +124,34 @@ static LineElement* get_next_line_debug(FILE *fpin,
 											filename, file_line);
 
 		line->str = p;
-		if (line->str)
+		if (line->str && line->str[0]!='#')
 			line->argc = line_to_arguments(line->str, line->argv,
 										MAX_LINE_ELEMENT_NUM);
-		else
+		else {
 			line->argc = 0;
+			if (line->str) {	
+				int line_number;
+				if (sscanf(line->str, "#line: %d", &line_number)==1) {
+					crb_get_current_interpreter()->current_line_number = 
+														line_number;
+				}
+				else if (strncmp(line->str, "#file:", 
+									strlen("#file:"))==0) {
+					char name_buf[512];
+					char *p = line->str + strlen("#file:");
+					int i = 0;
+					while (*p != '\"') p++;
+					p++;
+					while (*p != '\"') {
+						name_buf[i++] = *p++;
+					}
+					name_buf[i] = '\0';
+					crb_get_current_interpreter()->current_file_name = 
+								crb_create_identifier(name_buf);
+				}
+			}
+
+		}
 
 		return line;
 	}
@@ -432,6 +466,50 @@ static Expression* load_string_expression(FILE *fpin)
 	return expr;
 }
 
+static Expression* load_regexp_expression(FILE *fpin)
+{
+	LineElement *line;
+	Expression *expr = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+
+		if (line->argc == 0) {
+			release_line(line); continue;
+		}
+
+		if (strcmp(line->argv[0], "REGEXP_EXPRESSION")==0) {
+			expr = crb_alloc_expression(REGEXP_EXPRESSION);
+
+			char protect_char = line->argv[1][2];  // %r!
+			char *mb_str = line->argv[1]+3;
+			int mb_len = strlen(mb_str);
+			mb_str[mb_len-1] = '\0';  // omit ! in %r!abc!
+			
+			int wc_len = CRB_mbstowcs_len(mb_str);
+			DBG_assert(wc_len >= 0, ("wc_len..%d\n", wc_len));
+			CRB_CHAR *str = (CRB_CHAR*)crb_malloc(
+					sizeof(CRB_CHAR)*(wc_len+1));
+			CRB_mbstowcs(str, mb_str);
+
+			expr->u.regexp_value = crb_create_regexp_in_compile(str, 
+										protect_char);
+
+			release_line(line);
+			break;
+		}
+		else {
+			DBG_panic(("unexpected regexp expression:%s\n", line->argv[0]));
+
+		}
+	}
+
+	return expr;
+}
+
 
 static Expression* load_identifier_expression(FILE *fpin)
 {
@@ -645,11 +723,30 @@ static Expression* load_function_call_expression(FILE *fpin)
 		}
 
 		if (strcmp(line->argv[0], "FUNCTION_CALL_EXPRESSION")==0) {
-			char *identifier = crb_create_identifier(line->argv[1]);
 			int argument_num;
-			sscanf(line->argv[2], "%d", &argument_num);
+			sscanf(line->argv[1], "%d", &argument_num);
 			
 			release_line(line);
+
+			Expression *name_expr = NULL;
+			while (1) {
+				line = get_next_line(fpin);
+				if (!line->str) {
+					release_line(line); break;
+				}
+				if (line->argc == 0) {
+					release_line(line); continue;
+				}
+				if (strcmp(line->argv[0], "FUNCTION_NAME")==0) {
+					release_line(line);
+					name_expr = load_expression(fpin);
+					break;
+				}
+				else {
+					DBG_panic(("unexpected function_name:%s\n",
+								line->argv[0]));
+				}
+			}
 
 			ArgumentList *list = NULL;
 			int i;
@@ -684,7 +781,7 @@ static Expression* load_function_call_expression(FILE *fpin)
 					list = crb_chain_argument_list(list, arg_expr);
 			}
 
-			expr = crb_create_function_call_expression(identifier, list);
+			expr = crb_create_function_call_expression(name_expr, list);
 			break;
 		}
 		else {
@@ -921,6 +1018,79 @@ Expression* load_incdec_expression(FILE *fpin)
 	return expr;
 }
 
+Expression* load_member_expression(FILE *fpin)
+{
+	LineElement *line;
+	Expression *expr = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+		if (line->argc == 0) {
+			release_line(line); continue;
+		}
+
+		if (strcmp(line->argv[0], "MEMBER_EXPRESSION")==0) {
+			DBG_assert(line->argc==2, ("unexpected MEMBER_EXPRESSION"));
+			
+			char *name = crb_create_identifier(line->argv[1]);	
+			release_line(line);
+			Expression *assoc_expr = load_expression(fpin);
+
+			expr = crb_create_member_expression(assoc_expr, name);
+			break;
+		}
+		else {
+			DBG_panic(("unexpected member_expression:%s\n",
+						line->argv[0]));
+		}
+	}
+	return expr;
+}
+
+static Expression* load_closure_definition(FILE *fpin)
+{
+	Expression *expr = NULL;
+	LineElement *line;
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+
+		if (line->argc == 0) {
+			release_line(line); continue;
+		}
+
+
+		if (strcmp(line->argv[0], "CLOSURE_DEFINITION")==0) {
+
+			char *identifier = NULL;
+
+			if (line->argc == 2) {
+				identifier = crb_create_identifier(line->argv[1]);
+			}
+
+			release_line(line);
+
+			ParameterList *parameter_list = load_parameter_list(fpin);
+			Block *block = load_block(fpin);
+
+
+			expr = crb_create_closure_definition(identifier, 
+								parameter_list, block);
+			break;
+		}
+		else {
+			DBG_panic(("unexpected closure_definition:%s\n", line->argv[0]));
+		}
+	}
+
+	return expr;
+}
+
 
 static Expression* load_expression(FILE *fpin)
 {
@@ -952,6 +1122,10 @@ static Expression* load_expression(FILE *fpin)
 		else if (strcmp(line->argv[0], "STRING_EXPRESSION")==0) {
 			unget_line(line);
 			expr = load_string_expression(fpin);
+		}
+		else if (strcmp(line->argv[0], "REGEXP_EXPRESSION")==0) {
+			unget_line(line);
+			expr = load_regexp_expression(fpin);
 		}
 		else if (strcmp(line->argv[0], "IDENTIFIER_EXPRESSION")==0) {
 			unget_line(line);
@@ -1010,6 +1184,14 @@ static Expression* load_expression(FILE *fpin)
 				|| strcmp(line->argv[0], "POST_DECREMENT_EXPRESSION")==0) {
 			unget_line(line);
 			expr = load_incdec_expression(fpin);
+		}
+		else if (strcmp(line->argv[0], "MEMBER_EXPRESSION")==0) {
+			unget_line(line);
+			expr = load_member_expression(fpin);
+		}
+		else if (strcmp(line->argv[0], "CLOSURE_DEFINITION")==0) {
+			unget_line(line);
+			expr = load_closure_definition(fpin);
 		}
 		else {
 			DBG_panic(("unexpected expression: %s\n", line->argv[0]));
@@ -1394,6 +1576,124 @@ Statement* load_block_statement(FILE *fpin)
 	return stat;
 }
 
+Statement* load_try_statement(FILE *fpin)
+{
+	LineElement *line;
+	Statement *stat = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+		if (line->argc == 0) {
+			release_line(line); continue;
+		}
+		if (strcmp(line->argv[0], "TRY_STATEMENT")==0) {
+			int i;
+			CRB_Boolean with_catch = CRB_FALSE;
+			CRB_Boolean with_finally = CRB_FALSE;
+			char *identifier = NULL;
+			Statement *run_st = NULL;
+			Statement *catch_st = NULL;
+			Statement *finally_st = NULL;
+			for (i=1; i<line->argc; i++) {
+				if (strcmp(line->argv[i], "WITH_CATCH")==0)
+					with_catch = CRB_TRUE;
+				else if (strcmp(line->argv[i], "WITH_FINALLY")==0)
+					with_finally = CRB_TRUE;
+				else
+					identifier = crb_create_identifier(line->argv[i]);
+			}
+
+			release_line(line);
+			run_st = load_statement(fpin);
+			if (with_catch)
+				catch_st = load_statement(fpin);
+			if (with_finally)
+				finally_st = load_statement(fpin);
+
+			stat = crb_create_try_statement(run_st, identifier, 
+								catch_st, finally_st);
+			break;
+		}
+		else {
+			DBG_panic(("unexpected try statement:%s\n", line->argv[0]));
+		}
+	}
+	return stat;
+}
+
+
+Statement* load_throw_statement(FILE *fpin)
+{
+	LineElement *line;
+	Statement *stat = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+		if (line->argc == 0) {
+			release_line(line); continue;
+		}
+		if (strcmp(line->argv[0], "THROW_STATEMENT")==0) {
+			release_line(line);
+
+			Expression *throw_expr = load_expression(fpin);
+
+			stat = crb_create_throw_statement(throw_expr);
+			break;
+		}
+		else {
+			DBG_panic(("unexpected throw statement:%s\n", line->argv[0]));
+		}
+	}
+	return stat;
+}
+
+
+Statement* load_foreach_statement(FILE *fpin)
+{
+	LineElement *line;
+	Statement *stat = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+		if (line->argc == 0) {
+			release_line(line); continue;
+		}
+		if (strcmp(line->argv[0], "FOREACH_STATEMENT")==0) {
+
+			DBG_assert(line->argc == 2, (""));
+
+			char *identifier = crb_create_identifier(line->argv[1]);
+
+			release_line(line);
+
+			Expression *array_expr = load_expression(fpin);
+			Statement *sub_st = load_statement(fpin);
+
+			stat = crb_create_foreach_statement(identifier, array_expr,
+												sub_st);
+			break;
+		}
+		else {
+			DBG_panic(("unexpected foreach statement:%s\n", line->argv[0]));
+		}
+	}
+	return stat;
+}
+
+
+
+
+
+
 
 static Statement* load_statement(FILE *fpin)
 {
@@ -1446,6 +1746,18 @@ static Statement* load_statement(FILE *fpin)
 		else if (strcmp(line->argv[0], "BLOCK_STATEMENT")==0) {
 			unget_line(line);
 			stat = load_block_statement(fpin);
+		}
+		else if (strcmp(line->argv[0], "TRY_STATEMENT")==0) {
+			unget_line(line);
+			stat = load_try_statement(fpin);
+		}
+		else if (strcmp(line->argv[0], "THROW_STATEMENT")==0) {
+			unget_line(line);
+			stat = load_throw_statement(fpin);
+		}
+		else if (strcmp(line->argv[0], "FOREACH_STATEMENT")==0) {
+			unget_line(line);
+			stat = load_foreach_statement(fpin);
 		}
 		else {
 			DBG_panic(("unexpected statement: %s\n", line->argv[0]));

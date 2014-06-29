@@ -1,0 +1,47 @@
+#!/usr/bin/crowbar
+
+
+crowbar = new_object();
+crowbar.create_exception_class = closure(parent) {
+	this = new_object();
+	this.parent = parent;
+	this.create = closure(message) {
+		e = new_exception(message);
+		e.child_of = this.child_of;
+		return e;
+	};
+
+	this.child_of = closure(o) {
+		for (p = this; p != null; p = p.parent) {
+			if (p == o)
+				return true;
+		}
+		return false;
+	};
+
+	return this;
+};
+
+crowbar.create_array_iterator = closure(array) {
+	this = new_object();
+	index = 0;
+	this.first = closure() {
+		index = 0;	
+	};
+	this.current_item = closure() {
+		return array[index];
+	};
+	this.next = closure() {
+		index++;
+	};
+	this.is_done = closure() {
+		return index == array.size();
+	};
+	return this;
+};
+
+
+
+print("hello, crowbar\n");
+
+

@@ -1,0 +1,10 @@
+
+a = {1, 2, 3};
+print(a.size());
+print("\n");
+
+i=3;
+i<a.size();
+
+for (i=0; i<a.size(); i++)
+	print(""+i+"\n");

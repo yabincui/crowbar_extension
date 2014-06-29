@@ -12,6 +12,7 @@ static CRB_NativePointerInfo st_native_lib_info = {
 };
 
 
+
 static void check_argument_count(int arg_count, int true_count)
 {
 	if (arg_count < true_count)
@@ -19,7 +20,6 @@ static void check_argument_count(int arg_count, int true_count)
 	else if (arg_count > true_count)
 		crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
 }
-
 void crb_nv_print_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
                             int arg_count)
@@ -44,6 +44,32 @@ void crb_nv_print_proc(CRB_Interpreter *interpreter,
 
 	CRB_set_encoding(saved_encoding);
 }
+
+void crb_nv_println_proc(CRB_Interpreter *interpreter,
+						CRB_LocalEnvironment *env,
+                            int arg_count)
+{
+    CRB_Value value;
+	CRB_Value *args;
+
+	Encoding saved_encoding = CRB_set_encoding(interpreter->env_encoding);
+
+    value.type = CRB_NULL_VALUE;
+
+	check_argument_count(arg_count, 1);
+
+	args = crb_stack_peek_value(interpreter, 0);
+
+	CRB_CHAR *str = CRB_value_to_string(&args[0]);
+	CRB_println_wcs(stdout, str);
+	MEM_free(str);
+
+	crb_stack_shrink_size(interpreter, 1);
+	crb_stack_push_value(interpreter, &value);
+
+	CRB_set_encoding(saved_encoding);
+}
+
 
 void crb_nv_fopen_proc(CRB_Interpreter *interpreter,
 						CRB_LocalEnvironment *env,
@@ -294,4 +320,83 @@ void crb_nv_new_array_proc(CRB_Interpreter *inter,
 
 	crb_gc_enable(inter);
 
+}
+
+void crb_nv_new_object_proc(CRB_Interpreter *inter,
+							CRB_LocalEnvironment *env,
+							int arg_count)
+{
+	crb_gc_disable(inter);
+
+	check_argument_count(arg_count, 0);
+
+	CRB_Value assoc_value;
+
+	assoc_value.type = CRB_ASSOC_VALUE;
+	assoc_value.u.object_value = crb_create_assoc(inter);
+
+	crb_stack_push_value(inter, &assoc_value);
+
+	crb_gc_enable(inter);
+}
+
+void crb_nv_new_exception_proc(CRB_Interpreter *inter,
+							CRB_LocalEnvironment *env,
+							int arg_count)
+{
+	crb_gc_disable(inter);
+
+	check_argument_count(arg_count, 1);
+	
+	CRB_Value *args;
+
+	args = crb_stack_peek_value(inter, arg_count-1);
+
+	CRB_CHAR *wstr = CRB_value_to_string(&args[0]);
+		
+	CRB_Value msg_val;
+	msg_val.type = CRB_STRING_VALUE;
+	msg_val.u.object_value = crb_create_crowbar_string(inter, wstr);
+
+	CRB_Value assoc_val;
+	assoc_val.type = CRB_ASSOC_VALUE;
+	assoc_val.u.object_value = crb_create_assoc(inter);
+	
+	CRB_Value value;
+	value.type = CRB_BOOLEAN_VALUE;
+	value.u.boolean_value = CRB_TRUE;
+
+	crb_set_assoc_variable(inter, assoc_val.u.object_value,
+							"is_exception", value);
+	crb_set_assoc_variable(inter, assoc_val.u.object_value,
+							"exception_msg", msg_val);
+	
+	crb_stack_shrink_size(inter, 1);
+	crb_stack_push_value(inter, &assoc_val);
+
+	crb_gc_enable(inter);
+}
+
+
+
+
+static void
+add_native_functions(CRB_Interpreter *inter)
+{
+    CRB_add_native_function(inter, "print", crb_nv_print_proc);
+    CRB_add_native_function(inter, "println", crb_nv_println_proc);
+	CRB_add_native_function(inter, "fopen", crb_nv_fopen_proc);
+    CRB_add_native_function(inter, "fclose", crb_nv_fclose_proc);
+    CRB_add_native_function(inter, "fgets", crb_nv_fgets_proc);
+    CRB_add_native_function(inter, "fputs", crb_nv_fputs_proc);
+	CRB_add_native_function(inter, "new_array", crb_nv_new_array_proc);
+	CRB_add_native_function(inter, "new_object", crb_nv_new_object_proc);
+	CRB_add_native_function(inter, "new_exception", crb_nv_new_exception_proc);
+
+}
+
+
+void crb_add_native_functions(CRB_Interpreter *inter)
+{
+	add_native_functions(inter);
 }

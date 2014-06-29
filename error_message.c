@@ -7,6 +7,9 @@ MessageFormat crb_compile_error_message_format[] = {
     {"unexpected character ($(bad_char))"},
     {"function name conflict ($(name))"},
 	{"bad multibyte character in compilation"},
+	{"error in regexp literal definition"},
+	{"unexpected wide string in compilation"},
+	{"can not create regexp in compilation"},
     {"dummy"},
 };
 
@@ -18,7 +21,7 @@ MessageFormat crb_runtime_error_message_format[] = {
     {"argument num less than parameter num"},
     {"the type of if statement conditional expression must be boolean"},
     {"the arithmetic operation must have int/double value type"},
-    {"the operands type for operand $(operator) is unexpected"},
+    {"the operands type for operator $(operator) is unexpected"},
     {"operator $(operator) can not be used for boolean type"},
     {"set the filename and open mode for fopen(), both are string type"},
     {"set the file pointer for fclose()"},
@@ -39,5 +42,14 @@ MessageFormat crb_runtime_error_message_format[] = {
 	{"increment/decrement operand type must be lvalue integer"},
 	{"bad multibyte character met"},
 	{"bad crb character met"},
+	{"do member expression on not assoc value"},
+	{"no such member \"$(member_name)\""},
+	{"throw not exception type"},
+	{"argument type mismatch for function $(func_name)"},
+	{"onig failed to search: $(message)"},
+	{"unexpected wide string"},
+	{"group index overflow"},
+	{"no such group index: $(g_idx)"},
+	{"foreach not array type"},
     {"dummy"},
 };

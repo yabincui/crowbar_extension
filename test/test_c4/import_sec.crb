@@ -1,0 +1,8 @@
+
+
+print("hello, import_sec.crb\n");
+
+#import import.crb
+
+
+throw new_exception("message");

@@ -1,0 +1,4 @@
+
+print("before import\n");
+import "import_sec.crb"
+print("after import\n");

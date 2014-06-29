@@ -5,19 +5,55 @@
 #include "crowbar.h"
 #include "y.tab.h"
 
+struct bufstack {
+	struct bufstack *prev;
+	YY_BUFFER_STATE bs;
+	int lineno;
+	char *filename;
+	FILE *fp;
+} *curbs = NULL;
+	
+
 int
 yywrap(void)
 {
     return 1;
 }
 
-static void
-increment_line_number(void)
+static void set_current_filename(char *filename)
+{
+	crb_get_current_interpreter()->current_file_name = filename;	
+
+}
+
+static char* get_current_filename()
+{
+	return crb_get_current_interpreter()->current_file_name;
+}
+
+static void increment_line_number(void)
 {
     crb_get_current_interpreter()->current_line_number++;
 }
+
+static int get_line_number(void)
+{
+	return crb_get_current_interpreter()->current_line_number;
+}
+
+static void set_line_number(int line_number)
+{
+	crb_get_current_interpreter()->current_line_number = line_number;
+}
+
+static void set_compile_state(int state)
+{
+	crb_get_current_interpreter()->compile_state = state;
+}
+
 %}
-%start COMMENT STRING_LITERAL_STATE GBK_2ND_CHAR
+%start COMMENT STRING_LITERAL_STATE GBK_2ND_CHAR IFILE_STATE REGEXP_LITERAL_STATE
+
 %%
 <INITIAL>"function"     return FUNCTION;
 <INITIAL>"if"           return IF;
@@ -31,13 +67,20 @@ increment_line_number(void)
 <INITIAL>"null"         return NULL_T;
 <INITIAL>"true"         return TRUE_T;
 <INITIAL>"false"        return FALSE_T;
+<INITIAL>"foreach"		return FOREACH;
 <INITIAL>"global"       return GLOBAL_T;
+<INITIAL>"closure"		return CLOSURE;
+<INITIAL>"try"			return TRY;
+<INITIAL>"catch"		return CATCH;
+<INITIAL>"finally"		return FINALLY;
+<INITIAL>"throw"		return THROW;
 <INITIAL>"("            return LP;
 <INITIAL>")"            return RP;
 <INITIAL>"{"            return LC;
 <INITIAL>"}"            return RC;
 <INITIAL>";"            return SEMICOLON;
 <INITIAL>","            return COMMA;
+<INITIAL>":"			return COLON;
 <INITIAL>"&&"           return LOGICAL_AND;
 <INITIAL>"||"           return LOGICAL_OR;
 <INITIAL>"="            return ASSIGN;
@@ -80,6 +123,18 @@ increment_line_number(void)
 <INITIAL>[ \t\r] ;
 <INITIAL>\n {increment_line_number();}
 <INITIAL>#     BEGIN COMMENT;
+
+<INITIAL><<EOF>> 			{
+								if (crb_pop_parse_file())
+									yyterminate();
+							}
+<INITIAL>^[\t ]*import[ \t\"]+   {  BEGIN IFILE_STATE; }
+<INITIAL>%r.                {
+								crb_set_regexp_start_char(yytext[2]);
+								crb_open_string_literal();
+								BEGIN REGEXP_LITERAL_STATE;
+							}
+
 <INITIAL>.      {
     char buf[LINE_BUF_SIZE];
 
@@ -94,6 +149,47 @@ increment_line_number(void)
                       STRING_MESSAGE_ARGUMENT, "bad_char", buf,
                       MESSAGE_ARGUMENT_END);
 }
+
+<IFILE_STATE>[^ \t\"\n]+		{
+									int c;
+									while ((c=input()) &&  c!='\n')
+										;
+									increment_line_number();
+									if (crb_push_parse_file(yytext)) {
+										set_compile_state(1);
+										yyterminate();
+									}
+									BEGIN INITIAL;
+								}
+
+<IFILE_STATE>.|\n				{
+									fprintf(stderr, 
+											"%s:%4d bad import line\n",
+											get_current_filename(),
+											get_line_number());	
+									yyterminate();
+									set_compile_state(1);
+								}
+
+<REGEXP_LITERAL_STATE>\n        {
+									crb_compile_error(CR_IN_REGEXP_ERR,
+											MESSAGE_ARGUMENT_END);
+								}
+<REGEXP_LITERAL_STATE>.			{
+									if (yytext[0] != crb_regexp_start_char()) {
+										crb_add_string_literal(yytext[0]);
+									}
+									else {
+										Expression *expression = crb_alloc_expression(REGEXP_EXPRESSION);
+										CRB_CHAR *string_literal = crb_close_string_literal();
+										expression->u.regexp_value = crb_create_regexp_in_compile(string_literal, crb_regexp_start_char());
+										yylval.expression = expression;
+										BEGIN INITIAL;
+										return REGEXP_LITERAL;
+									}
+								}
+
+
 <COMMENT>\n     {
     increment_line_number();
     BEGIN INITIAL;
@@ -129,3 +225,85 @@ increment_line_number(void)
 }
 
 %%
+
+
+int check_repeat_import(char *filename)
+{
+	struct bufstack *bs;
+	char *cur_filename = get_current_filename();
+	if (cur_filename == NULL) return 0;
+
+	if (strcmp(cur_filename, filename)==0)
+		return 1;
+
+	if (curbs==NULL) return 0;
+
+	for (bs=curbs->prev; bs!=NULL; bs=bs->prev) {
+		if (strcmp(bs->filename, filename)==0)
+			return 1;
+	}
+	return 0;
+}
+
+
+int crb_push_parse_file(char *filename)
+{
+	if (check_repeat_import(filename)) {
+		fprintf(stderr, "warning: recursive import file %s\n", filename);
+		return 1;
+	}
+
+
+	FILE *fp = fopen(filename, "r");
+	if (fp==NULL) {
+		perror(filename); return 1;
+	}
+
+	struct bufstack *bs = crb_malloc(sizeof(struct bufstack));
+	if (bs==NULL) {
+		perror("crb_malloc"); return 1;
+	}
+
+
+
+	if (curbs) {
+		curbs->lineno = get_line_number();
+		curbs->filename = get_current_filename();
+	}
+	bs->prev = curbs;
+
+	bs->bs = yy_create_buffer(fp, YY_BUF_SIZE);
+	bs->fp = fp;
+
+	curbs = bs;
+
+	yy_switch_to_buffer(curbs->bs);
+
+	set_current_filename(crb_create_identifier(filename));
+	set_line_number(1);
+
+	return 0;
+}
+
+
+
+int crb_pop_parse_file()
+{
+	struct bufstack *bs = curbs;
+	struct bufstack *prevbs;
+
+	DBG_assert(bs!=NULL, ("crb_pop_parse_file error"));
+
+	fclose(bs->fp);
+	yy_delete_buffer(bs->bs);
+
+	curbs = bs->prev;
+
+	if (!curbs) return 1;
+	yy_switch_to_buffer(curbs->bs);
+	set_current_filename(curbs->filename);
+	set_line_number(curbs->lineno);
+	return 0;
+}
+
+

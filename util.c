@@ -72,65 +72,68 @@ crb_execute_malloc(CRB_Interpreter *inter, size_t size)
     return p;
 }
 
-Variable *
-crb_search_local_variable(CRB_LocalEnvironment *env, char *identifier)
-{
-    Variable    *pos;
 
-    if (env == NULL)
-        return NULL;
-    for (pos = env->variable; pos; pos = pos->next) {
-        if (!strcmp(pos->name, identifier))
-            break;
-    }
-    if (pos == NULL) {
-        return NULL;
-    } else {
-        return pos;
-    }
+Variable* CRB_add_global_variable(CRB_Interpreter *inter,
+					char *identifier, CRB_Value *pvalue)
+{
+	Variable *variable = crb_search_scope_variable(inter,
+							inter->first_env.environ_scope,
+							identifier, CRB_TRUE);
+	variable->value = *pvalue;
+	return variable;
 }
 
-Variable *
-crb_search_global_variable(CRB_Interpreter *inter, char *identifier)
+Variable* crb_search_global_variable(CRB_Interpreter *inter,
+					char *identifier)
 {
-    Variable    *pos;
-
-    for (pos = inter->variable; pos; pos = pos->next) {
-        if (!strcmp(pos->name, identifier))
-            return pos;
-    }
-
-    return NULL;
+	return crb_search_scope_variable(inter,
+						inter->first_env.environ_scope,
+						identifier, CRB_FALSE);
 }
 
-Variable*
-crb_add_local_variable(CRB_LocalEnvironment *env,
-                       char *identifier, CRB_Value *value)
-{
-    Variable    *new_variable;
 
-    new_variable = MEM_malloc(sizeof(Variable));
-    new_variable->name = identifier;
-    new_variable->value = *value;
-    new_variable->next = env->variable;
-    env->variable = new_variable;
-	return new_variable;
+Variable* crb_search_local_variable(CRB_Interpreter *inter,
+					CRB_LocalEnvironment *env,
+					char *identifier, CRB_Boolean can_create)
+{
+	CRB_Object *scope = env->environ_scope;
+	CRB_Boolean is_closure = scope->u.scope_chain.is_closure;
+	Variable *variable = NULL;
+
+	//printf("before crb_search_local_variable(%s)\n", identifier);
+
+	variable = crb_search_scope_variable(inter, scope, identifier,
+											CRB_FALSE);
+	if (!variable && is_closure) {
+		while (1) {
+			CRB_Object *prev_scope = scope->u.scope_chain.prev_scope;
+			scope = prev_scope;
+			if (scope == NULL) break;
+			variable = crb_search_scope_variable(inter, scope, identifier,
+													CRB_FALSE);
+			if (variable) break;
+		}
+	}
+	else if (!variable && !is_closure) {
+		CRB_Object *global_scope = inter->first_env.environ_scope;
+
+		variable = crb_search_scope_variable(inter, global_scope, 
+										identifier, CRB_FALSE);
+				
+	}
+
+	if (!variable && can_create) {
+		scope = inter->top_env->environ_scope;
+		variable = crb_search_scope_variable(inter, scope, identifier,
+													CRB_TRUE);
+	}
+	
+	//printf("after crb_search_local_variable(%s) = 0x%x\n", identifier,
+	//							variable);
+	
+	return variable;
 }
 
-Variable*
-CRB_add_global_variable(CRB_Interpreter *inter, char *identifier,
-                        CRB_Value *value)
-{
-    Variable    *new_variable;
-
-    new_variable = crb_execute_malloc(inter, sizeof(Variable));
-    new_variable->name = crb_execute_malloc(inter, strlen(identifier) + 1);
-    strcpy(new_variable->name, identifier);
-    new_variable->next = inter->variable;
-    inter->variable = new_variable;
-    new_variable->value = *value;
-	return new_variable;
-}
 
 char *
 crb_get_operator_string(ExpressionType type)
@@ -176,16 +179,16 @@ crb_get_operator_string(ExpressionType type)
         str = "!=";
         break;
     case GT_EXPRESSION:
-        str = "<";
-        break;
-    case GE_EXPRESSION:
-        str = "<=";
-        break;
-    case LT_EXPRESSION:
         str = ">";
         break;
-    case LE_EXPRESSION:
+    case GE_EXPRESSION:
         str = ">=";
+        break;
+    case LT_EXPRESSION:
+        str = "<";
+        break;
+    case LE_EXPRESSION:
+        str = "<=";
         break;
     case MINUS_EXPRESSION:
         str = "-";
@@ -279,10 +282,20 @@ CRB_CHAR* CRB_value_to_string(CRB_Value *value)
 					value->u.object_value->u.string.string);
 		break;
 	case CRB_NATIVE_POINTER_VALUE:
-		sprintf(buf, "(%s:%p)",
+		if (value->u.native_pointer.info == crb_get_regexp_info()) {
+			CRB_Regexp *regexp = value->u.native_pointer.pointer;
+			sprintf(buf, "%%r%c", regexp->protect_char);
+			crb_vstr_append_string(&vstr, buf);
+			crb_vstr_append_wstring(&vstr, regexp->pattern);
+			sprintf(buf, "%c", regexp->protect_char);
+			crb_vstr_append_string(&vstr, buf);
+		}
+		else {
+			sprintf(buf, "(%s:%p)",
 				value->u.native_pointer.info->name,
 				value->u.native_pointer.pointer);
-		crb_vstr_append_string(&vstr, buf);
+			crb_vstr_append_string(&vstr, buf);
+		}
 		break;
 	case CRB_NULL_VALUE:
 		crb_vstr_append_string(&vstr, "null");
@@ -300,6 +313,40 @@ CRB_CHAR* CRB_value_to_string(CRB_Value *value)
 		}
 		crb_vstr_append_string(&vstr, ")");
 		break;
+	case CRB_ASSOC_VALUE:
+		{
+			crb_vstr_append_string(&vstr, "{");
+			Variable *variable;
+			for (variable = value->u.object_value->u.assoc.member;
+					variable != NULL; variable = variable->next) {
+				sprintf(buf, " %s : ", variable->name);
+				crb_vstr_append_string(&vstr, buf);
+				CRB_CHAR *new_str = CRB_value_to_string(
+										&(variable->value));
+				crb_vstr_append_wstring(&vstr, new_str);
+				MEM_free(new_str);
+				if (variable->next != NULL)
+					crb_vstr_append_string(&vstr, ", ");
+			}
+			crb_vstr_append_string(&vstr, "}");
+
+			break;
+		}
+	case CRB_SCOPE_CHAIN_VALUE:
+		{
+			crb_vstr_append_string(&vstr, "ScopeChain");
+			break;
+		}
+	case CRB_CLOSURE_VALUE:
+		{
+			crb_vstr_append_string(&vstr, "CLOSURE");
+			break;
+		}
+	case CRB_FAKE_METHOD_VALUE:
+		{
+			crb_vstr_append_string(&vstr, "FAKE_METHOD");
+			break;
+		}
 	default:
 		DBG_panic(("value->type..%d\n", value->type));
 	}
@@ -307,4 +354,23 @@ CRB_CHAR* CRB_value_to_string(CRB_Value *value)
 }
 
 
+CRB_ValueType crb_object_type_to_value_type(ObjectType type)
+{
+	CRB_ValueType ret_type;
 
+	switch (type) {
+	case STRING_OBJECT:
+		ret_type = CRB_STRING_VALUE; break;
+	case ARRAY_OBJECT:
+		ret_type = CRB_ARRAY_VALUE; break;
+	case ASSOC_OBJECT:
+		ret_type = CRB_ASSOC_VALUE; break;
+	case SCOPE_CHAIN_OBJECT:
+		ret_type = CRB_SCOPE_CHAIN_VALUE; break;
+	case OBJECT_TYPE_COUNT_PLUS_1:  // fall through
+	default:
+		DBG_panic(("unexpected object_type: %d\n", type));
+	}
+
+	return ret_type;
+}

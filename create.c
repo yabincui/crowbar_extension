@@ -22,6 +22,10 @@ crb_function_define(char *identifier, ParameterList *parameter_list,
     f->type = CROWBAR_FUNCTION_DEFINITION;
     f->u.crowbar_f.parameter = parameter_list;
     f->u.crowbar_f.block = block;
+
+	f->filename = inter->current_file_name;
+	f->line_number = inter->current_line_number;
+
     f->next = inter->function_list;
     inter->function_list = f;
 }
@@ -104,13 +108,14 @@ crb_chain_statement_list(StatementList *list, Statement *statement)
 Expression *
 crb_alloc_expression(ExpressionType type)
 {
-    Expression  *exp;
+    Expression  *expr;
 
-    exp = crb_malloc(sizeof(Expression));
-    exp->type = type;
-    exp->line_number = crb_get_current_interpreter()->current_line_number;
+    expr = crb_malloc(sizeof(Expression));
+    expr->type = type;
+	expr->filename = crb_get_current_interpreter()->current_file_name;
+    expr->line_number = crb_get_current_interpreter()->current_line_number;
 
-    return exp;
+    return expr;
 }
 
 Expression *
@@ -188,6 +193,8 @@ crb_create_minus_expression(Expression *operand)
     }
 }
 
+
+
 Expression *
 crb_create_identifier_expression(char *identifier)
 {
@@ -200,12 +207,13 @@ crb_create_identifier_expression(char *identifier)
 }
 
 Expression *
-crb_create_function_call_expression(char *func_name, ArgumentList *argument)
+crb_create_function_call_expression(Expression *expr, 
+									ArgumentList *argument)
 {
     Expression  *exp;
 
     exp = crb_alloc_expression(FUNCTION_CALL_EXPRESSION);
-    exp->u.function_call_expression.identifier = func_name;
+    exp->u.function_call_expression.expr = expr;
     exp->u.function_call_expression.argument = argument;
 
     return exp;
@@ -239,6 +247,7 @@ alloc_statement(StatementType type)
 
     st = crb_malloc(sizeof(Statement));
     st->type = type;
+	st->filename = crb_get_current_interpreter()->current_file_name;
     st->line_number = crb_get_current_interpreter()->current_line_number;
 
     return st;
@@ -475,3 +484,130 @@ Expression* crb_create_incdec_expression(ExpressionType type,
 
 	return expr;
 }
+
+Expression* crb_create_member_expression(Expression *assoc_expr,
+										char *member_name)
+{
+	Expression *expr;
+
+	expr = crb_alloc_expression(MEMBER_EXPRESSION);
+	expr->u.member_expression.expression = assoc_expr;
+	expr->u.member_expression.member_name = member_name;
+
+	
+	return expr;
+}
+
+Expression* crb_create_closure_definition(char *name,
+										ParameterList *param,
+										Block *block)
+{
+	Expression *expr;
+
+	expr = crb_alloc_expression(CLOSURE_DEFINITION);
+    
+	FunctionDefinition *f = crb_malloc(sizeof(FunctionDefinition));
+    f->name = name;
+    f->type = CROWBAR_FUNCTION_DEFINITION;
+    f->u.crowbar_f.parameter = param;
+    f->u.crowbar_f.block = block;
+
+	expr->u.closure_definition.function = f;
+
+	return expr;
+}
+
+
+Statement* crb_create_try_statement(Statement *run_st, char *identifier,
+									Statement *catch_st, 
+									Statement *final_st)
+{
+	Statement *st;
+
+	st = alloc_statement(TRY_STATEMENT);
+	st->u.try_s.run_st = run_st;
+	st->u.try_s.identifier = identifier;
+	st->u.try_s.catch_st = catch_st;
+	st->u.try_s.final_st = final_st;
+
+	return st;
+}
+
+
+Statement* crb_create_throw_statement(Expression *throw_expr)
+{
+	Statement *st;
+
+	st = alloc_statement(THROW_STATEMENT);
+	st->u.throw_s.throw_expr = throw_expr;
+
+	return st;
+}
+
+Statement* crb_create_foreach_statement(char *identifier,
+										Expression *array_expr,
+										Statement *sub_st)
+{
+	Statement *st;
+	
+	st = alloc_statement(FOREACH_STATEMENT);
+	st->u.foreach_s.identifier = identifier;
+	st->u.foreach_s.array_expr = array_expr;
+	st->u.foreach_s.sub_st = sub_st;
+
+	return st;
+
+}
+
+
+void crb_init_identifier_expression(Expression *expr, char *identifier,
+									char *filename, int line_number)
+{
+	expr->type = IDENTIFIER_EXPRESSION;
+	expr->filename = filename;
+	expr->line_number = line_number;
+	expr->u.identifier = identifier;
+}
+
+
+void crb_init_member_expression(Expression *expr,
+								Expression *assoc_expr,
+								char *member_name,
+								char *filename, int line_number)
+{
+
+	expr->type = MEMBER_EXPRESSION;
+	expr->filename = filename;
+	expr->line_number = line_number;
+	expr->u.member_expression.expression = assoc_expr;
+	expr->u.member_expression.member_name = member_name;
+
+	
+}
+
+
+void crb_init_argument_list(ArgumentList *argument,
+									Expression *expression)
+{
+
+    argument->expression = expression;
+    argument->next = NULL;
+
+}
+
+void crb_init_function_call_expression(Expression *expr,
+									Expression *func_expr, 
+									ArgumentList *argument,
+									char *filename, int line_number)
+{
+
+    expr->type = FUNCTION_CALL_EXPRESSION;
+	expr->filename = filename;
+	expr->line_number = line_number;
+	expr->u.function_call_expression.expr = func_expr;
+    expr->u.function_call_expression.argument = argument;
+
+}
+
+
+
