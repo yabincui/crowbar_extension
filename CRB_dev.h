@@ -8,6 +8,9 @@ typedef enum {
 } CRB_Boolean;
 
 typedef struct CRB_String_tag CRB_String;
+typedef struct CRB_LocalEnvironment_tag CRB_LocalEnvironment;
+typedef struct Variable_tag Variable;
+typedef struct CRB_Object_tag CRB_Object;
 
 typedef struct {
     char        *name;
@@ -19,7 +22,8 @@ typedef enum {
     CRB_DOUBLE_VALUE,
     CRB_STRING_VALUE,
     CRB_NATIVE_POINTER_VALUE,
-    CRB_NULL_VALUE
+    CRB_NULL_VALUE,
+	CRB_ARRAY_VALUE
 } CRB_ValueType;
 
 typedef struct {
@@ -33,17 +37,18 @@ typedef struct {
         CRB_Boolean     boolean_value;
         int             int_value;
         double          double_value;
-        CRB_String      *string_value;
+        CRB_Object      *object_value;
         CRB_NativePointer       native_pointer;
     } u;
 } CRB_Value;
 
-typedef CRB_Value CRB_NativeFunctionProc(CRB_Interpreter *interpreter,
-                                         int arg_count, CRB_Value *args);
+typedef void CRB_NativeFunctionProc(CRB_Interpreter *interpreter,
+                                    CRB_LocalEnvironment *env,     
+									int arg_count);
 
 void CRB_add_native_function(CRB_Interpreter *interpreter,
                              char *name, CRB_NativeFunctionProc *proc);
-void CRB_add_global_variable(CRB_Interpreter *inter,
+Variable* CRB_add_global_variable(CRB_Interpreter *inter,
                              char *identifier, CRB_Value *value);
 
 #endif /* PUBLIC_CRB_DEV_H_INCLUDED */

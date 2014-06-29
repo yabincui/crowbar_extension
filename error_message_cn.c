@@ -28,5 +28,6 @@ MessageFormat crb_runtime_error_message_format[] = {
     {"全局变量$(name)不存在。"},
     {"不能在函数外使用global语句。"},
     {"运算符$(operator)不能用于字符串类型。"},
+    {""},
     {"dummy"},
 };

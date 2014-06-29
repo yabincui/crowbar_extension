@@ -9,13 +9,14 @@ OBJS = \
   execute.o\
   eval.o\
   string.o\
-  string_pool.o\
   util.o\
   native.o\
   error.o\
   error_message.o\
   dump.o  \
   load.o \
+  heap.o \
+  gc.o \
   ./memory/mem.o\
   ./debug/dbg.o
 CFLAGS = -c -g -Wall -DDEBUG #-Wswitch-enum -DDEBUG #-ansi -pedantic -DDEBUG
@@ -53,8 +54,8 @@ interface.o: interface.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 main.o: main.c CRB.h MEM.h
 native.o: native.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 string.o: string.c MEM.h crowbar.h CRB.h CRB_dev.h
-string_pool.o: string_pool.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
+heap.o: heap.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 util.o: util.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 dump_load.o : dump_load.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
-
+gc.o: gc.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 

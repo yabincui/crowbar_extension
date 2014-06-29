@@ -114,12 +114,12 @@ crb_alloc_expression(ExpressionType type)
 }
 
 Expression *
-crb_create_assign_expression(char *variable, Expression *operand)
+crb_create_assign_expression(Expression *left, Expression *operand)
 {
     Expression *exp;
 
     exp = crb_alloc_expression(ASSIGN_EXPRESSION);
-    exp->u.assign_expression.variable = variable;
+    exp->u.assign_expression.left = left;
     exp->u.assign_expression.operand = operand;
 
     return exp;
@@ -399,4 +399,79 @@ Statement *crb_create_block_statement(Block *block)
 	st->u.block_s.block = block;
 
 	return st;
+}
+
+
+ExpressionList *crb_create_expression_list(Expression *expr)
+{
+	ExpressionList *list;
+
+	list = crb_malloc(sizeof(ExpressionList));
+	list->expression = expr;
+	list->next = NULL;
+
+	return list;
+}
+
+
+ExpressionList *crb_chain_expression_list(ExpressionList *list,
+											Expression *expr)
+{
+	ExpressionList *pos;
+	for (pos = list; pos->next != NULL; pos = pos->next)
+		;
+
+	pos->next = crb_create_expression_list(expr);
+
+	return list;
+}
+
+Expression* crb_create_array_expression(ExpressionList *list)
+{
+	Expression *expr;
+
+	expr = crb_alloc_expression(ARRAY_EXPRESSION);
+	expr->u.array_expression = list;
+
+	return expr;
+}
+
+
+Expression* crb_create_index_expression(Expression *array_expr,
+										Expression *index_expr)
+{
+	Expression *expr;
+
+	expr = crb_alloc_expression(INDEX_EXPRESSION);
+	expr->u.index_expression.array = array_expr;
+	expr->u.index_expression.index = index_expr;
+
+	return expr;
+}
+
+
+Expression* crb_create_method_call_expression(Expression *obj_expr,
+											char *identifier,
+											ArgumentList *argument)
+{
+	Expression *expr;
+
+	expr = crb_alloc_expression(METHOD_CALL_EXPRESSION);
+	expr->u.method_call_expression.expression = obj_expr;
+	expr->u.method_call_expression.identifier = identifier;
+	expr->u.method_call_expression.argument = argument;
+
+	return expr;
+}
+
+
+Expression* crb_create_incdec_expression(ExpressionType type,
+										Expression *operand)
+{
+	Expression *expr;
+
+	expr = crb_alloc_expression(type);
+	expr->u.inc_dec.operand = operand;
+
+	return expr;
 }

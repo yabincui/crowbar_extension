@@ -73,7 +73,7 @@ crb_execute_malloc(CRB_Interpreter *inter, size_t size)
 }
 
 Variable *
-crb_search_local_variable(LocalEnvironment *env, char *identifier)
+crb_search_local_variable(CRB_LocalEnvironment *env, char *identifier)
 {
     Variable    *pos;
 
@@ -103,8 +103,8 @@ crb_search_global_variable(CRB_Interpreter *inter, char *identifier)
     return NULL;
 }
 
-void
-crb_add_local_variable(LocalEnvironment *env,
+Variable*
+crb_add_local_variable(CRB_LocalEnvironment *env,
                        char *identifier, CRB_Value *value)
 {
     Variable    *new_variable;
@@ -114,9 +114,10 @@ crb_add_local_variable(LocalEnvironment *env,
     new_variable->value = *value;
     new_variable->next = env->variable;
     env->variable = new_variable;
+	return new_variable;
 }
 
-void
+Variable*
 CRB_add_global_variable(CRB_Interpreter *inter, char *identifier,
                         CRB_Value *value)
 {
@@ -128,6 +129,7 @@ CRB_add_global_variable(CRB_Interpreter *inter, char *identifier,
     new_variable->next = inter->variable;
     inter->variable = new_variable;
     new_variable->value = *value;
+	return new_variable;
 }
 
 char *
@@ -197,3 +199,98 @@ crb_get_operator_string(ExpressionType type)
 
     return str;
 }
+
+
+void crb_vstr_clear(VString *v)
+{
+	v->string = NULL;
+}
+
+static int my_strlen(char *str)
+{
+	if (str==NULL)
+		return 0;
+	return strlen(str);
+}
+
+
+void crb_vstr_append_string(VString *v, char *str)
+{
+	int new_size, old_len;
+
+	old_len = my_strlen(v->string);
+	new_size = old_len + my_strlen(str) + 1;
+	v->string = MEM_realloc(v->string, new_size);
+	strcpy(&v->string[old_len], str);
+}
+
+
+void crb_vstr_append_character(VString *v, char ch)
+{
+	int new_size, old_len;
+
+	old_len = my_strlen(v->string);
+	new_size = old_len + 1 + 1;
+	v->string = MEM_realloc(v->string, new_size);
+	v->string[old_len] = ch;
+	v->string[old_len+1] = '\0';
+}
+
+
+char* CRB_value_to_string(CRB_Value *value)
+{
+	VString vstr;
+	char buf[LINE_BUF_SIZE];
+	int i;
+
+	crb_vstr_clear(&vstr);
+	
+	switch (value->type) {
+	case CRB_BOOLEAN_VALUE:
+		if (value->u.boolean_value)
+			crb_vstr_append_string(&vstr, "true");
+		else
+			crb_vstr_append_string(&vstr, "false");
+		break;
+	case CRB_INT_VALUE:
+		sprintf(buf, "%d", value->u.int_value);
+		crb_vstr_append_string(&vstr, buf);
+		break;
+	case CRB_DOUBLE_VALUE:
+		sprintf(buf, "%lf", value->u.double_value);
+		crb_vstr_append_string(&vstr, buf);
+		break;
+	case CRB_STRING_VALUE:
+		crb_vstr_append_string(&vstr, 
+					value->u.object_value->u.string.string);
+		break;
+	case CRB_NATIVE_POINTER_VALUE:
+		sprintf(buf, "(%s:%p)",
+				value->u.native_pointer.info->name,
+				value->u.native_pointer.pointer);
+		crb_vstr_append_string(&vstr, buf);
+		break;
+	case CRB_NULL_VALUE:
+		crb_vstr_append_string(&vstr, "null");
+		break;
+	case CRB_ARRAY_VALUE:
+		crb_vstr_append_string(&vstr, "(");
+		for (i=0; i<value->u.object_value->u.array.length; i++) {
+			char *new_str;
+			if (i>0)
+				crb_vstr_append_string(&vstr, ", ");
+			new_str = CRB_value_to_string(
+					&value->u.object_value->u.array.array[i]);
+			crb_vstr_append_string(&vstr, new_str);
+			MEM_free(new_str);
+		}
+		crb_vstr_append_string(&vstr, ")");
+		break;
+	default:
+		DBG_panic(("value->type..%d\n", value->type));
+	}
+	return vstr.string;
+}
+
+
+

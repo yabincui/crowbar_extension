@@ -111,9 +111,10 @@ static void dump_identifier_expression(Expression *expression, FILE *fpout,
 static void dump_assign_expression(Expression *expression, FILE *fpout,
 														int space_num)
 {
-	fprintf(fpout, "%sASSIGN_EXPRESSION %s\n",
-			space_num_string(space_num), 
-			expression->u.assign_expression.variable);
+	fprintf(fpout, "%sASSIGN_EXPRESSION\n",
+			space_num_string(space_num));
+	dump_expression(expression->u.assign_expression.left, fpout,
+					space_num+1);
 	dump_expression(expression->u.assign_expression.operand, fpout,
 					space_num+1);
 
@@ -221,8 +222,8 @@ static void dump_function_call_expression(Expression *expression,
 				argument_num);
 	list = expression->u.function_call_expression.argument;
 	while (list!=NULL) {
-		fprintf(fpout, "%sARGUMENT\n", space_num_string(space_num));
-		dump_expression(list->expression, fpout, space_num);
+		fprintf(fpout, "%sARGUMENT\n", space_num_string(space_num+1));
+		dump_expression(list->expression, fpout, space_num+2);
 		list = list->next;
 	}
 }
@@ -233,6 +234,78 @@ static void dump_null_expression(Expression *expression, FILE *fpout,
 {
 	fprintf(fpout, "%sNULL_EXPRESSION\n", space_num_string(space_num));
 
+}
+
+
+static void dump_method_call_expression(Expression *expression, 
+										FILE *fpout,
+										int space_num)
+{
+	int argument_num = 0;
+	ArgumentList *list;
+	for (list = expression->u.method_call_expression.argument;
+			list != NULL; list = list->next)
+		argument_num++;
+
+	fprintf(fpout, "%sMETHOD_CALL_EXPRESSION %s %d\n",
+			space_num_string(space_num), 
+			expression->u.method_call_expression.identifier,
+			argument_num);
+	
+	dump_expression(expression->u.method_call_expression.expression,
+			fpout, space_num+1);
+	for (list = expression->u.method_call_expression.argument;
+			list != NULL; list = list->next) {
+		fprintf(fpout, "%sARGUMENT\n", space_num_string(space_num+1));
+		dump_expression(list->expression, fpout, space_num+2);
+	}
+	
+}
+
+static void dump_array_expression(Expression *expression,
+									FILE *fpout, int space_num)
+{
+	int expr_num = 0;
+	ExpressionList *list;
+	for (list = expression->u.array_expression; list != NULL;
+			list = list->next)
+		expr_num++;
+
+	fprintf(fpout, "%sARRAY_EXPRESSION %d\n",
+			space_num_string(space_num), expr_num);
+	for (list = expression->u.array_expression; list != NULL;
+			list = list->next) {
+		dump_expression(list->expression, fpout, space_num+1);
+	}
+}
+
+static void dump_index_expression(Expression *expression,
+								FILE *fpout, int space_num)
+{
+	fprintf(fpout, "%sINDEX_EXPRESSION\n", space_num_string(space_num));
+	dump_expression(expression->u.index_expression.array, fpout, 
+			space_num+1);
+	dump_expression(expression->u.index_expression.index, fpout,
+			space_num+1);
+}
+
+
+static void dump_incdec_expression(Expression *expression,
+								FILE *fpout, int space_num)
+{
+	char *expr_name = NULL; 
+	if (expression->type == PREV_INCREMENT_EXPRESSION)
+		expr_name = "PREV_INCREMENT_EXPRESSION";
+	else if (expression->type == POST_INCREMENT_EXPRESSION)
+		expr_name = "POST_INCREMENT_EXPRESSION";
+	else if (expression->type == PREV_DECREMENT_EXPRESSION)
+		expr_name = "PREV_DECREMENT_EXPRESSION";
+	else if (expression->type == POST_DECREMENT_EXPRESSION)
+		expr_name = "POST_DECREMENT_EXPRESSION";
+
+	fprintf(fpout, "%s%s\n", space_num_string(space_num),
+				expr_name);
+	dump_expression(expression->u.inc_dec.operand, fpout, space_num+1);
 }
 
 
@@ -283,6 +356,21 @@ static void dump_expression(Expression *expression, FILE *fpout,
 			break;
 		case NULL_EXPRESSION:
 			dump_null_expression(expression, fpout, space_num);
+			break;
+		case METHOD_CALL_EXPRESSION:
+			dump_method_call_expression(expression, fpout, space_num);
+			break;
+		case ARRAY_EXPRESSION:
+			dump_array_expression(expression, fpout, space_num);
+			break;
+		case INDEX_EXPRESSION:
+			dump_index_expression(expression, fpout, space_num);
+			break;
+		case PREV_INCREMENT_EXPRESSION:		// fall through
+		case POST_INCREMENT_EXPRESSION:		// fall through
+		case PREV_DECREMENT_EXPRESSION:		// fall through
+		case POST_DECREMENT_EXPRESSION:
+			dump_incdec_expression(expression, fpout, space_num);
 			break;
 		case EXPRESSION_TYPE_COUNT_PLUS_1:	// fall through
 		default:

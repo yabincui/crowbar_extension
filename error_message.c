@@ -28,5 +28,13 @@ MessageFormat crb_runtime_error_message_format[] = {
     {"global variable $(name) does not exist"},
     {"can not use global statement outside function"},
     {"operator $(operator) can not be used to string type"},
+	{"operand can not be lvalue."},
+	{"no such method $(method_name) in object."},
+	{"not valid integer value for array.resize()."},
+	{"left side of index operation is not array type."},
+	{"right side in [] is not int type."},
+	{"array size is $(size), access index is [$(index)]."},
+	{"argument type for new_array() should be nonnegative integer"},
+	{"increment/decrement operand type must be lvalue integer"},
     {"dummy"},
 };

@@ -11,55 +11,43 @@ static CRB_NativePointerInfo st_native_lib_info = {
     NATIVE_LIB_NAME
 };
 
-CRB_Value crb_nv_print_proc(CRB_Interpreter *interpreter,
-                            int arg_count, CRB_Value *args)
+
+static void check_argument_count(int arg_count, int true_count)
+{
+	if (arg_count < true_count)
+		crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR, MESSAGE_ARGUMENT_END);
+	else if (arg_count > true_count)
+		crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR, MESSAGE_ARGUMENT_END);
+}
+
+void crb_nv_print_proc(CRB_Interpreter *interpreter,
+						CRB_LocalEnvironment *env,
+                            int arg_count)
 {
     CRB_Value value;
+	CRB_Value *args;
 
     value.type = CRB_NULL_VALUE;
 
-    if (arg_count < 1) {
-        crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR,
-                          MESSAGE_ARGUMENT_END);
-    } else if (arg_count > 1) {
-        crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
-                          MESSAGE_ARGUMENT_END);
-    }
-    switch (args[0].type) {
-    case CRB_BOOLEAN_VALUE:
-        if (args[0].u.boolean_value) {
-            printf("true");
-        } else {
-            printf("false");
-        }
-        break;
-    case CRB_INT_VALUE:
-        printf("%d", args[0].u.int_value);
-        break;
-    case CRB_DOUBLE_VALUE:
-        printf("%f", args[0].u.double_value);
-        break;
-    case CRB_STRING_VALUE:
-        printf("%s", args[0].u.string_value->string);
-        break;
-    case CRB_NATIVE_POINTER_VALUE:
-        printf("(%s:%p)",
-               args[0].u.native_pointer.info->name,
-               args[0].u.native_pointer.pointer);
-        break;
-    case CRB_NULL_VALUE:
-        printf("null");
-        break;
-    }
+	check_argument_count(arg_count, 1);
 
-    return value;
+	args = crb_stack_peek_value(interpreter, 0);
+
+	char *str = CRB_value_to_string(&args[0]);
+	printf("%s", str);
+	MEM_free(str);
+
+	crb_stack_shrink_size(interpreter, 1);
+	crb_stack_push_value(interpreter, &value);
 }
 
-CRB_Value crb_nv_fopen_proc(CRB_Interpreter *interpreter,
-                            int arg_count, CRB_Value *args)
+void crb_nv_fopen_proc(CRB_Interpreter *interpreter,
+						CRB_LocalEnvironment *env,
+                            int arg_count)
 {
     CRB_Value value;
     FILE *fp;
+	CRB_Value *args;
 
     if (arg_count < 2) {
         crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR,
@@ -68,14 +56,17 @@ CRB_Value crb_nv_fopen_proc(CRB_Interpreter *interpreter,
         crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
                           MESSAGE_ARGUMENT_END);
     }
+
+	args = crb_stack_peek_value(interpreter, 1);
+
     if (args[0].type != CRB_STRING_VALUE
         || args[1].type != CRB_STRING_VALUE) {
         crb_runtime_error(0, FOPEN_ARGUMENT_TYPE_ERR,
                           MESSAGE_ARGUMENT_END);
     }
     
-    fp = fopen(args[0].u.string_value->string,
-               args[1].u.string_value->string);
+    fp = fopen(args[0].u.object_value->u.string.string,
+               args[1].u.object_value->u.string.string);
     if (fp == NULL) {
         value.type = CRB_NULL_VALUE;
     } else {
@@ -84,7 +75,8 @@ CRB_Value crb_nv_fopen_proc(CRB_Interpreter *interpreter,
         value.u.native_pointer.pointer = fp;
     }
 
-    return value;
+    crb_stack_shrink_size(interpreter, 2);
+	crb_stack_push_value(interpreter, &value);
 }
 
 static CRB_Boolean
@@ -93,11 +85,13 @@ check_native_pointer(CRB_Value *value)
     return value->u.native_pointer.info == &st_native_lib_info;
 }
 
-CRB_Value crb_nv_fclose_proc(CRB_Interpreter *interpreter,
-                             int arg_count, CRB_Value *args)
+void crb_nv_fclose_proc(CRB_Interpreter *interpreter,
+						CRB_LocalEnvironment *env,
+                             int arg_count)
 {
     CRB_Value value;
     FILE *fp;
+	CRB_Value *args;
 
     value.type = CRB_NULL_VALUE;
     if (arg_count < 1) {
@@ -107,6 +101,9 @@ CRB_Value crb_nv_fclose_proc(CRB_Interpreter *interpreter,
         crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
                           MESSAGE_ARGUMENT_END);
     }
+
+	args = crb_stack_peek_value(interpreter, 0);
+
     if (args[0].type != CRB_NATIVE_POINTER_VALUE
         || !check_native_pointer(&args[0])) {
         crb_runtime_error(0, FCLOSE_ARGUMENT_TYPE_ERR,
@@ -115,17 +112,20 @@ CRB_Value crb_nv_fclose_proc(CRB_Interpreter *interpreter,
     fp = args[0].u.native_pointer.pointer;
     fclose(fp);
 
-    return value;
+    crb_stack_shrink_size(interpreter, 1);
+	crb_stack_push_value(interpreter, &value);
 }
 
-CRB_Value crb_nv_fgets_proc(CRB_Interpreter *interpreter,
-                            int arg_count, CRB_Value *args)
+void crb_nv_fgets_proc(CRB_Interpreter *interpreter,
+						CRB_LocalEnvironment *env,
+                            int arg_count)
 {
     CRB_Value value;
     FILE *fp;
     char buf[LINE_BUF_SIZE];
     char *ret_buf = NULL;
     int ret_len = 0;
+	CRB_Value *args;
 
     if (arg_count < 1) {
         crb_runtime_error(0, ARGUMENT_TOO_FEW_ERR,
@@ -134,6 +134,9 @@ CRB_Value crb_nv_fgets_proc(CRB_Interpreter *interpreter,
         crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
                           MESSAGE_ARGUMENT_END);
     }
+
+	args = crb_stack_peek_value(interpreter, 0);
+
     if (args[0].type != CRB_NATIVE_POINTER_VALUE
         || !check_native_pointer(&args[0])) {
         crb_runtime_error(0, FGETS_ARGUMENT_TYPE_ERR,
@@ -156,19 +159,23 @@ CRB_Value crb_nv_fgets_proc(CRB_Interpreter *interpreter,
     }
     if (ret_len > 0) {
         value.type = CRB_STRING_VALUE;
-        value.u.string_value = crb_create_crowbar_string(interpreter, ret_buf);
+        value.u.object_value = 
+			crb_create_crowbar_string(interpreter, ret_buf);
     } else {
         value.type = CRB_NULL_VALUE;
     }
 
-    return value;
+    crb_stack_shrink_size(interpreter, 1);
+	crb_stack_push_value(interpreter, &value);
 }
 
-CRB_Value crb_nv_fputs_proc(CRB_Interpreter *interpreter,
-                            int arg_count, CRB_Value *args)
+void crb_nv_fputs_proc(CRB_Interpreter *interpreter,
+						CRB_LocalEnvironment *env,
+                            int arg_count)
 {
     CRB_Value value;
     FILE *fp;
+	CRB_Value *args;
 
     value.type = CRB_NULL_VALUE;
     if (arg_count < 2) {
@@ -178,6 +185,9 @@ CRB_Value crb_nv_fputs_proc(CRB_Interpreter *interpreter,
         crb_runtime_error(0, ARGUMENT_TOO_MANY_ERR,
                           MESSAGE_ARGUMENT_END);
     }
+
+	args = crb_stack_peek_value(interpreter, 1);
+
     if (args[0].type != CRB_STRING_VALUE
         || (args[1].type != CRB_NATIVE_POINTER_VALUE
             || !check_native_pointer(&args[1]))) {
@@ -186,9 +196,10 @@ CRB_Value crb_nv_fputs_proc(CRB_Interpreter *interpreter,
     }
     fp = args[1].u.native_pointer.pointer;
 
-    fputs(args[0].u.string_value->string, fp);
+    fputs(args[0].u.object_value->u.string.string, fp);
 
-    return value;
+    crb_stack_shrink_size(interpreter, 2);
+	crb_stack_push_value(interpreter, &value);
 }
 
 void
@@ -207,4 +218,65 @@ crb_add_std_fp(CRB_Interpreter *inter)
 
     fp_value.u.native_pointer.pointer = stderr;
     CRB_add_global_variable(inter, "STDERR", &fp_value);
+}
+
+
+static CRB_Value new_array(CRB_Interpreter *inter,
+								CRB_LocalEnvironment *env,
+								CRB_Value *args, int arg_count,
+								int pos)
+{
+	CRB_Value value;
+	if (pos == arg_count) {
+		value.type = CRB_NULL_VALUE;
+	}
+	else {
+		value.type = CRB_ARRAY_VALUE;
+		value.u.object_value = crb_create_array(inter, args[pos].u.int_value);
+		int i;
+		for (i=0; i<args[pos].u.int_value; i++) {
+			value.u.object_value->u.array.array[i] =
+				new_array(inter, env, args, arg_count, pos+1);
+		}
+	}
+	return value;
+}
+
+
+void crb_nv_new_array_proc(CRB_Interpreter *inter,
+							CRB_LocalEnvironment *env,
+							int arg_count)
+{
+	crb_gc_disable(inter);
+
+	if (arg_count == 0) {
+		CRB_Value value;
+		value.type = CRB_INT_VALUE;
+		value.u.int_value = 0;
+		crb_stack_push_value(inter, &value);
+		arg_count = 1;
+	}
+
+	CRB_Value *args;
+
+	args = crb_stack_peek_value(inter, arg_count-1);
+
+	int i;
+	for (i=0; i<arg_count; i++) {
+		if (args[i].type != CRB_INT_VALUE || args[i].u.int_value < 0)
+			crb_runtime_error(0, NEW_ARRAY_ARGUMENT_TYPE_ERR,
+					MESSAGE_ARGUMENT_END);
+	}
+
+
+	CRB_Value array_val;
+
+	array_val = new_array(inter, env, args, arg_count, 0);
+
+	crb_stack_shrink_size(inter, arg_count);
+
+	crb_stack_push_value(inter, &array_val);
+
+	crb_gc_enable(inter);
+
 }

@@ -52,6 +52,11 @@ increment_line_number(void)
 <INITIAL>"*"            return MUL;
 <INITIAL>"/"            return DIV;
 <INITIAL>"%"            return MOD;
+<INITIAL>"["			return LB;
+<INITIAL>"]"			return RB;
+<INITIAL>"."			return DOT;
+<INITIAL>"++"			return INCREMENT;
+<INITIAL>"--"			return DECREMENT;
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {
     yylval.identifier = crb_create_identifier(yytext);
     return IDENTIFIER;

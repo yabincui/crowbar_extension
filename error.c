@@ -10,10 +10,7 @@ extern char *yytext;
 extern MessageFormat crb_compile_error_message_format[];
 extern MessageFormat crb_runtime_error_message_format[];
 
-typedef struct {
-    char        *string;
-} VString;
-
+/*
 static void
 clear_v_string(VString *v)
 {
@@ -51,6 +48,8 @@ add_character(VString *v, int ch)
     v->string[current_len] = ch;
     v->string[current_len+1] = '\0';
 }
+
+*/
 
 typedef struct {
     MessageArgumentType type;
@@ -129,7 +128,7 @@ format_message(MessageFormat *format, VString *v, va_list ap)
 
     for (i = 0; format->format[i] != '\0'; i++) {
         if (format->format[i] != '$') {
-            add_character(v, format->format[i]);
+            crb_vstr_append_character(v, format->format[i]);
             continue;
         }
         assert(format->format[i+1] == '(');
@@ -145,23 +144,23 @@ format_message(MessageFormat *format, VString *v, va_list ap)
         switch (cur_arg.type) {
         case INT_MESSAGE_ARGUMENT:
             sprintf(buf, "%d", cur_arg.u.int_val);
-            add_string(v, buf);
+            crb_vstr_append_string(v, buf);
             break;
         case DOUBLE_MESSAGE_ARGUMENT:
-            sprintf(buf, "%f", cur_arg.u.double_val);
-            add_string(v, buf);
+            sprintf(buf, "%lf", cur_arg.u.double_val);
+            crb_vstr_append_string(v, buf);
             break;
         case STRING_MESSAGE_ARGUMENT:
             strcpy(buf, cur_arg.u.string_val);
-            add_string(v, cur_arg.u.string_val);
+            crb_vstr_append_string(v, cur_arg.u.string_val);
             break;
         case POINTER_MESSAGE_ARGUMENT:
             sprintf(buf, "%p", cur_arg.u.pointer_val);
-            add_string(v, buf);
+            crb_vstr_append_string(v, buf);
             break;
         case CHARACTER_MESSAGE_ARGUMENT:
             sprintf(buf, "%c", cur_arg.u.character_val);
-            add_string(v, buf);
+            crb_vstr_append_string(v, buf);
             break;
         case MESSAGE_ARGUMENT_END:
             assert(0);
@@ -207,7 +206,7 @@ crb_compile_error(CompileError id, ...)
     self_check();
     va_start(ap, id);
     line_number = crb_get_current_interpreter()->current_line_number;
-    clear_v_string(&message);
+    crb_vstr_clear(&message);
     format_message(&crb_compile_error_message_format[id],
                    &message, ap);
     fprintf(stderr, "%3d:%s\n", line_number, message.string);
@@ -224,7 +223,7 @@ crb_runtime_error(int line_number, RuntimeError id, ...)
 
     self_check();
     va_start(ap, id);
-    clear_v_string(&message);
+    crb_vstr_clear(&message);
     format_message(&crb_runtime_error_message_format[id],
                    &message, ap);
     fprintf(stderr, "%3d:%s\n", line_number, message.string);

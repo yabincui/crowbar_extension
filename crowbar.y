@@ -13,6 +13,7 @@
     Block               *block;
     Elsif               *elsif;
     IdentifierList      *identifier_list;
+	ExpressionList		*expression_list;
 }
 %token <expression>     INT_LITERAL
 %token <expression>     DOUBLE_LITERAL
@@ -21,13 +22,15 @@
 %token FUNCTION IF ELSE ELSIF WHILE FOR RETURN_T BREAK CONTINUE NULL_T
         LP RP LC RC SEMICOLON COMMA ASSIGN LOGICAL_AND LOGICAL_OR
         EQ NE GT GE LT LE ADD SUB MUL DIV MOD TRUE_T FALSE_T GLOBAL_T
+		LB RB DOT INCREMENT DECREMENT
 %type   <parameter_list> parameter_list
 %type   <argument_list> argument_list
 %type   <expression> expression expression_opt
         logical_and_expression logical_or_expression
         equality_expression relational_expression
         additive_expression multiplicative_expression
-        unary_expression primary_expression
+        unary_expression postfix_expression primary_expression
+		array_literal 
 %type   <statement> statement global_statement
         if_statement while_statement for_statement
         return_statement break_statement continue_statement block_statement
@@ -35,6 +38,7 @@
 %type   <block> block
 %type   <elsif> elsif elsif_list
 %type   <identifier_list> identifier_list
+%type   <expression_list> expression_list
 %%
 translation_unit
         : definition_or_statement
@@ -92,10 +96,14 @@ statement_list
         ;
 expression
         : logical_or_expression
-        | IDENTIFIER ASSIGN expression
+        | postfix_expression ASSIGN expression
         {
             $$ = crb_create_assign_expression($1, $3);
         }
+		| postfix_expression ASSIGN array_literal
+		{
+			$$ = crb_create_assign_expression($1, $3);
+		}
         ;
 logical_or_expression
         : logical_and_expression
@@ -167,13 +175,54 @@ multiplicative_expression
             $$ = crb_create_binary_expression(MOD_EXPRESSION, $1, $3);
         }
         ;
+
+
+
 unary_expression
-        : primary_expression
+        : postfix_expression
         | SUB unary_expression
         {
             $$ = crb_create_minus_expression($2);
         }
+		| INCREMENT unary_expression
+		{
+			$$ = crb_create_incdec_expression(PREV_INCREMENT_EXPRESSION,
+					$2);	
+		}
+		| DECREMENT unary_expression
+		{
+			$$ = crb_create_incdec_expression(PREV_DECREMENT_EXPRESSION,
+					$2);
+		}
         ;
+
+
+postfix_expression
+		: primary_expression
+		| postfix_expression LB expression RB
+		{	
+			$$ = crb_create_index_expression($1, $3);
+		}
+		| postfix_expression DOT IDENTIFIER LP argument_list RP
+		{
+			$$ = crb_create_method_call_expression($1, $3, $5);
+		}
+		| postfix_expression DOT IDENTIFIER LP RP
+		{
+			$$ = crb_create_method_call_expression($1, $3, NULL);
+		}
+		| postfix_expression INCREMENT
+		{
+			$$ = crb_create_incdec_expression(POST_INCREMENT_EXPRESSION,
+												$1);
+		}
+		| postfix_expression DECREMENT
+		{
+			$$ = crb_create_incdec_expression(POST_DECREMENT_EXPRESSION,
+												$1);
+		}
+		;
+
 primary_expression
         : IDENTIFIER LP argument_list RP
         {
@@ -207,6 +256,33 @@ primary_expression
             $$ = crb_create_null_expression();
         }
         ;
+
+array_literal
+		: LC expression_list RC
+		{	
+			$$ = crb_create_array_expression($2);
+		}
+		| LC expression_list COMMA RC
+		{
+			$$ = crb_create_array_expression($2);
+		}
+		;
+
+expression_list
+		:
+		{
+			$$ = NULL;
+		}
+		| expression
+		{
+			$$ = crb_create_expression_list($1);
+		}
+		| expression_list COMMA expression
+		{
+			$$ = crb_chain_expression_list($1, $3);
+		}
+		;
+
 statement
 		: SEMICOLON
 		{

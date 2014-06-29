@@ -5,28 +5,24 @@
 #include "crowbar.h"
 
 static StatementResult
-execute_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                   Statement *statement);
 
 static StatementResult
-execute_expression_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_expression_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                              Statement *statement)
 {
     StatementResult result;
-    CRB_Value v;
 
     result.type = NORMAL_STATEMENT_RESULT;
 
-    v = crb_eval_expression(inter, env, statement->u.expression_s);
-    if (v.type == CRB_STRING_VALUE) {
-        crb_release_string(v.u.string_value);
-    }
+    crb_eval_expression(inter, env, statement->u.expression_s);
 
     return result;
 }
 
 static StatementResult
-execute_global_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_global_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                          Statement *statement)
 {
     IdentifierList *pos;
@@ -67,7 +63,7 @@ execute_global_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_elsif(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_elsif(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
               Elsif *elsif_list, CRB_Boolean *executed)
 {
     StatementResult result;
@@ -97,7 +93,7 @@ execute_elsif(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_if_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_if_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                      Statement *statement)
 {
     StatementResult result;
@@ -132,7 +128,7 @@ execute_if_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_while_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_while_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                         Statement *statement)
 {
     StatementResult result;
@@ -165,7 +161,7 @@ execute_while_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_for_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_for_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                       Statement *statement)
 {
     StatementResult result;
@@ -207,7 +203,7 @@ execute_for_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_return_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_return_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                          Statement *statement)
 {
     StatementResult result;
@@ -225,7 +221,7 @@ execute_return_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_break_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_break_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                         Statement *statement)
 {
     StatementResult result;
@@ -236,7 +232,7 @@ execute_break_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_continue_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_continue_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                            Statement *statement)
 {
     StatementResult result;
@@ -247,7 +243,7 @@ execute_continue_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 static StatementResult
-execute_statement(CRB_Interpreter *inter, LocalEnvironment *env,
+execute_statement(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                   Statement *statement)
 {
     StatementResult result;
@@ -292,7 +288,7 @@ execute_statement(CRB_Interpreter *inter, LocalEnvironment *env,
 }
 
 StatementResult
-crb_execute_statement_list(CRB_Interpreter *inter, LocalEnvironment *env,
+crb_execute_statement_list(CRB_Interpreter *inter, CRB_LocalEnvironment *env,
                            StatementList *list)
 {
     StatementList *pos;
@@ -308,3 +304,4 @@ crb_execute_statement_list(CRB_Interpreter *inter, LocalEnvironment *env,
   FUNC_END:
     return result;
 }
+

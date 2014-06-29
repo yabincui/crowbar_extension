@@ -33,3 +33,26 @@ print("i="+i+"\n");
 
 ;
 
+
+
+function f1(repeat_time, str)
+{
+	if (repeat_time>0) {
+		print("repeat_time: "+repeat_time+" "+str+"\n");
+		f1(repeat_time-1, str);
+
+	}
+}
+
+
+f1(10, "hello, world");
+
+
+a = 10;
+print("a="+(a++)+"\n");
+b = ++a;
+print("a="+a+", b="+b+"\n");
+a = 10;
+print("a="+(a--)+"\n");
+b = --a;
+print("a="+a+", b="+b+"\n");

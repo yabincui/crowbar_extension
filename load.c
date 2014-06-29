@@ -478,12 +478,13 @@ static Expression* load_assign_expression(FILE *fpin)
 		}
 
 		if (strcmp(line->argv[0], "ASSIGN_EXPRESSION")==0) {
-			char *identifier = crb_create_identifier(line->argv[1]);
+			Expression *left_expr;
 			Expression *right_expr;
 			
 			release_line(line);
+			left_expr = load_expression(fpin);
 			right_expr = load_expression(fpin);
-			expr = crb_create_assign_expression(identifier, right_expr);
+			expr = crb_create_assign_expression(left_expr, right_expr);
 			break;
 		}
 		else {
@@ -722,6 +723,201 @@ static Expression* load_null_expression(FILE *fpin)
 }
 
 
+static Expression* load_method_call_expression(FILE *fpin)
+{
+	LineElement *line;
+	Expression *expr = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line);
+			break;
+		}
+		if (line->argc==0) {
+			release_line(line);
+			continue;
+		}
+		if (strcmp(line->argv[0], "METHOD_CALL_EXPRESSION")==0) {
+			DBG_assert(line->argc==3, 
+					("METHOD_CALL_EXPRESSION with argc..%d\n",
+					 line->argc));
+
+			char *identifier = crb_create_identifier(line->argv[1]);
+			int argument_num;
+			sscanf(line->argv[2], "%d", &argument_num);
+			release_line(line);
+
+			Expression *obj_expr = load_expression(fpin);
+
+			ArgumentList *argument = NULL;
+			int i;
+
+			for (i=0; i<argument_num; i++) {
+				Expression *arg_expr = NULL;
+
+				while (1) {
+					line = get_next_line(fpin);
+					if (!line->str) {
+						release_line(line); break;
+					}
+					if (line->argc==0) {
+						release_line(line); continue;
+					}
+					if (strcmp(line->argv[0], "ARGUMENT")==0) {
+						release_line(line);
+						arg_expr = load_expression(fpin);
+						break;
+					}
+					else {
+						DBG_panic(("unexpected argument:%s\n",
+									line->argv[0]));
+					}
+				}
+
+				if (argument == NULL)
+					argument = crb_create_argument_list(arg_expr);
+				else
+					argument = crb_chain_argument_list(argument, arg_expr);
+
+			}
+
+			expr = crb_create_method_call_expression(obj_expr,
+											identifier, argument);
+			break;
+			
+		}
+		else {
+			DBG_panic(("unexpected method_call_expression:%s\n",
+						line->argv[0]));
+		}
+	}
+
+	return expr;
+
+}
+
+
+Expression* load_array_expression(FILE *fpin)
+{
+	LineElement *line;
+	Expression *expr = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+		if (line->argc==0) {
+			release_line(line); continue;
+		}
+
+		if (strcmp(line->argv[0], "ARRAY_EXPRESSION")==0) {
+			DBG_assert(line->argc==2, 
+					("unexpected array_expression with argc..%d\n",
+					 line->argc));
+
+			int expr_num;
+			sscanf(line->argv[1], "%d", &expr_num);
+			
+			release_line(line);
+			int i;
+			ExpressionList *list = NULL;
+
+			for (i=0; i<expr_num; i++) {
+				Expression *sub_expr = load_expression(fpin);
+				if (list == NULL)
+					list = crb_create_expression_list(sub_expr);
+				else
+					list = crb_chain_expression_list(list, sub_expr);
+			}
+
+			expr = crb_create_array_expression(list);
+			break;
+		}
+		else {
+			DBG_panic(("unexpected array_expression:%s\n",
+						line->argv[0]));
+		}
+
+	}
+
+	return expr;
+}
+
+
+static Expression* load_index_expression(FILE *fpin)
+{
+	LineElement *line;
+	Expression *expr = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+		if (line->argc==0) {
+			release_line(line); continue;
+		}
+
+		if (strcmp(line->argv[0], "INDEX_EXPRESSION")==0) {
+			release_line(line);
+
+			Expression *array_expr = load_expression(fpin);
+			Expression *index_expr = load_expression(fpin);
+
+			expr = crb_create_index_expression(array_expr, index_expr);
+			break;
+
+		}
+		else {
+			DBG_panic(("unexpected index_expression:%s\n",
+						line->argv[0]));
+		}
+
+	}
+
+	return expr;
+}
+
+
+Expression* load_incdec_expression(FILE *fpin)
+{
+	LineElement *line;
+	Expression *expr = NULL;
+
+	while (1) {
+		line = get_next_line(fpin);
+		if (!line->str) {
+			release_line(line); break;
+		}
+		if (line->argc==0) {
+			release_line(line); continue;
+		}
+
+		ExpressionType type;
+		if (strcmp(line->argv[0], "PREV_INCREMENT_EXPRESSION")==0)
+			type = PREV_INCREMENT_EXPRESSION;
+		else if (strcmp(line->argv[0], "POST_INCREMENT_EXPRESSION")==0)
+			type = POST_INCREMENT_EXPRESSION;
+		else if (strcmp(line->argv[0], "PREV_DECREMENT_EXPRESSION")==0)
+			type = PREV_DECREMENT_EXPRESSION;
+		else if (strcmp(line->argv[0], "POST_DECREMENT_EXPRESSION")==0)
+			type = POST_DECREMENT_EXPRESSION;
+		else 
+			DBG_panic(("unexpected incdec_expression:%s\n",
+						line->argv[0]));
+
+		release_line(line);
+		Expression *sub_expr = load_expression(fpin);
+
+		expr = crb_create_incdec_expression(type, sub_expr);
+		break;
+
+	}
+	return expr;
+}
+
 
 static Expression* load_expression(FILE *fpin)
 {
@@ -792,6 +988,25 @@ static Expression* load_expression(FILE *fpin)
 		else if (strcmp(line->argv[0], "NULL_EXPRESSION")==0) {
 			unget_line(line);
 			expr = load_null_expression(fpin);
+		}
+		else if (strcmp(line->argv[0], "METHOD_CALL_EXPRESSION")==0) {
+			unget_line(line);
+			expr = load_method_call_expression(fpin);
+		}
+		else if (strcmp(line->argv[0], "ARRAY_EXPRESSION")==0) {
+			unget_line(line);
+			expr = load_array_expression(fpin);
+		}
+		else if (strcmp(line->argv[0], "INDEX_EXPRESSION")==0) {
+			unget_line(line);
+			expr = load_index_expression(fpin);
+		}
+		else if (strcmp(line->argv[0], "PREV_INCREMENT_EXPRESSION")==0
+				|| strcmp(line->argv[0], "POST_INCREMENT_EXPRESSION")==0
+				|| strcmp(line->argv[0], "PREV_DECREMENT_EXPRESSION")==0
+				|| strcmp(line->argv[0], "POST_DECREMENT_EXPRESSION")==0) {
+			unget_line(line);
+			expr = load_incdec_expression(fpin);
 		}
 		else {
 			DBG_panic(("unexpected expression: %s\n", line->argv[0]));
