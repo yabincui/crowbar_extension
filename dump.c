@@ -94,8 +94,10 @@ static void dump_double_expression(Expression *expression, FILE *fpout,
 static void dump_string_expression(Expression *expression, FILE *fpout,
 														int space_num)
 {
-	fprintf(fpout, "%sSTRING_EXPRESSION \"%s\"\n",
-			space_num_string(space_num), expression->u.string_value);
+	fprintf(fpout, "%sSTRING_EXPRESSION \"",
+			space_num_string(space_num));
+	CRB_print_wcs(fpout, expression->u.string_value);
+	fprintf(fpout, "\"\n");
 
 }
 

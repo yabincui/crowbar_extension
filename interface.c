@@ -33,7 +33,7 @@ static void init_object_heap(Heap *heap)
 
 
 CRB_Interpreter *
-CRB_create_interpreter(void)
+CRB_create_interpreter(Encoding source_encoding, Encoding env_encoding)
 {
     MEM_Storage storage;
     CRB_Interpreter *interpreter;
@@ -50,6 +50,8 @@ CRB_create_interpreter(void)
 	init_value_stack(&interpreter->stack);
 	init_object_heap(&interpreter->heap);
 	interpreter->top_env = NULL;
+	interpreter->source_encoding = source_encoding;
+	interpreter->env_encoding = env_encoding;
 
     crb_set_current_interpreter(interpreter);
     add_native_functions(interpreter);
@@ -67,6 +69,8 @@ CRB_compile(CRB_Interpreter *interpreter, FILE *fp)
 
     crb_set_current_interpreter(interpreter);
 
+	Encoding saved_encoding = CRB_set_encoding(interpreter->source_encoding);
+
     yyin = fp;
     if (yyparse()) {
         /* BUGBUG */
@@ -77,6 +81,8 @@ CRB_compile(CRB_Interpreter *interpreter, FILE *fp)
 	
 	// use value_stack for some constant calculation
 	release_value_stack(interpreter);
+
+	CRB_set_encoding(saved_encoding);
 }
 
 static void
@@ -144,6 +150,8 @@ CRB_add_native_function(CRB_Interpreter *interpreter,
 
 void CRB_reset_interpreter(CRB_Interpreter **pinter)
 {
+	Encoding source_encoding = (*pinter)->source_encoding;
+	Encoding env_encoding = (*pinter)->env_encoding;
 	CRB_dispose_interpreter(*pinter);
-	*pinter = CRB_create_interpreter();
+	*pinter = CRB_create_interpreter(source_encoding, env_encoding);
 }

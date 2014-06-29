@@ -98,7 +98,7 @@ static void gc_dispose_object(CRB_Interpreter *inter, CRB_Object *object)
 	case STRING_OBJECT:
 		if (!object->u.string.is_literal) {
 			inter->heap.current_heap_size -= 
-				strlen(object->u.string.string)+1;
+				(CRB_wcslen(object->u.string.string)+1) * sizeof(CRB_CHAR);
 			MEM_free(object->u.string.string);
 		}
 		break;

@@ -1,10 +1,19 @@
 #ifndef PUBLIC_CRB_H_INCLUDED
 #define PUBLIC_CRB_H_INCLUDED
 #include <stdio.h>
+#include <wchar.h>
+
+typedef enum {
+	NO_ENCODING = 0,
+	EN_ENCODING,
+	UTF8_ENCODING,
+	GBK_ENCODING,
+} Encoding;
 
 typedef struct CRB_Interpreter_tag CRB_Interpreter;
 
-CRB_Interpreter *CRB_create_interpreter(void);
+CRB_Interpreter *CRB_create_interpreter(Encoding source_encoding,
+										Encoding env_encoding);
 void CRB_compile(CRB_Interpreter *interpreter, FILE *fp);
 void CRB_interpret(CRB_Interpreter *interpreter);
 void CRB_dispose_interpreter(CRB_Interpreter *interpreter);

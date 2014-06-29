@@ -206,38 +206,52 @@ void crb_vstr_clear(VString *v)
 	v->string = NULL;
 }
 
-static int my_strlen(char *str)
+static int my_strlen(CRB_CHAR *str)
 {
 	if (str==NULL)
 		return 0;
-	return strlen(str);
+	return CRB_wcslen(str);
 }
-
 
 void crb_vstr_append_string(VString *v, char *str)
 {
-	int new_size, old_len;
-
-	old_len = my_strlen(v->string);
-	new_size = old_len + my_strlen(str) + 1;
-	v->string = MEM_realloc(v->string, new_size);
-	strcpy(&v->string[old_len], str);
+	CRB_CHAR *wstr = CRB_mbstowcs_alloc(0, str);
+	crb_vstr_append_wstring(v, wstr);
+	MEM_free(wstr);
 }
-
 
 void crb_vstr_append_character(VString *v, char ch)
 {
-	int new_size, old_len;
-
-	old_len = my_strlen(v->string);
-	new_size = old_len + 1 + 1;
-	v->string = MEM_realloc(v->string, new_size);
-	v->string[old_len] = ch;
-	v->string[old_len+1] = '\0';
+	char s[2];
+	s[0] = ch; s[1] = '\0';
+	crb_vstr_append_string(v, s);
 }
 
 
-char* CRB_value_to_string(CRB_Value *value)
+void crb_vstr_append_wstring(VString *v, CRB_CHAR *str)
+{
+	int new_len, old_len;
+
+	old_len = CRB_wcslen(v->string);
+	new_len = old_len + my_strlen(str);
+	v->string = MEM_realloc(v->string, (new_len+1)*sizeof(CRB_CHAR));
+	CRB_wcscpy(&v->string[old_len], str);
+}
+
+
+void crb_vstr_append_wcharacter(VString *v, CRB_CHAR ch)
+{
+	int new_len, old_len;
+
+	old_len = my_strlen(v->string);
+	new_len = old_len + 1;
+	v->string = MEM_realloc(v->string, (new_len+1)*sizeof(CRB_CHAR));
+	v->string[old_len] = ch;
+	v->string[old_len+1] = L'\0';
+}
+
+
+CRB_CHAR* CRB_value_to_string(CRB_Value *value)
 {
 	VString vstr;
 	char buf[LINE_BUF_SIZE];
@@ -261,7 +275,7 @@ char* CRB_value_to_string(CRB_Value *value)
 		crb_vstr_append_string(&vstr, buf);
 		break;
 	case CRB_STRING_VALUE:
-		crb_vstr_append_string(&vstr, 
+		crb_vstr_append_wstring(&vstr, 
 					value->u.object_value->u.string.string);
 		break;
 	case CRB_NATIVE_POINTER_VALUE:
@@ -276,12 +290,12 @@ char* CRB_value_to_string(CRB_Value *value)
 	case CRB_ARRAY_VALUE:
 		crb_vstr_append_string(&vstr, "(");
 		for (i=0; i<value->u.object_value->u.array.length; i++) {
-			char *new_str;
+			CRB_CHAR *new_str;
 			if (i>0)
 				crb_vstr_append_string(&vstr, ", ");
 			new_str = CRB_value_to_string(
 					&value->u.object_value->u.array.array[i]);
-			crb_vstr_append_string(&vstr, new_str);
+			crb_vstr_append_wstring(&vstr, new_str);
 			MEM_free(new_str);
 		}
 		crb_vstr_append_string(&vstr, ")");

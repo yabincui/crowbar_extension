@@ -27,18 +27,22 @@ void crb_nv_print_proc(CRB_Interpreter *interpreter,
     CRB_Value value;
 	CRB_Value *args;
 
+	Encoding saved_encoding = CRB_set_encoding(interpreter->env_encoding);
+
     value.type = CRB_NULL_VALUE;
 
 	check_argument_count(arg_count, 1);
 
 	args = crb_stack_peek_value(interpreter, 0);
 
-	char *str = CRB_value_to_string(&args[0]);
-	printf("%s", str);
+	CRB_CHAR *str = CRB_value_to_string(&args[0]);
+	CRB_print_wcs(stdout, str);
 	MEM_free(str);
 
 	crb_stack_shrink_size(interpreter, 1);
 	crb_stack_push_value(interpreter, &value);
+
+	CRB_set_encoding(saved_encoding);
 }
 
 void crb_nv_fopen_proc(CRB_Interpreter *interpreter,
@@ -64,10 +68,16 @@ void crb_nv_fopen_proc(CRB_Interpreter *interpreter,
         crb_runtime_error(0, FOPEN_ARGUMENT_TYPE_ERR,
                           MESSAGE_ARGUMENT_END);
     }
+
+	char *fname = CRB_wcstombs_alloc(0, args[0].u.object_value->u.string.string);
+	char *fmode = CRB_wcstombs_alloc(0, args[1].u.object_value->u.string.string);
+
+    fp = fopen(fname, fmode);
+
+	MEM_free(fname);
+	MEM_free(fmode);
     
-    fp = fopen(args[0].u.object_value->u.string.string,
-               args[1].u.object_value->u.string.string);
-    if (fp == NULL) {
+	if (fp == NULL) {
         value.type = CRB_NULL_VALUE;
     } else {
         value.type = CRB_NATIVE_POINTER_VALUE;
@@ -159,8 +169,12 @@ void crb_nv_fgets_proc(CRB_Interpreter *interpreter,
     }
     if (ret_len > 0) {
         value.type = CRB_STRING_VALUE;
+
+		CRB_CHAR *wstr = CRB_mbstowcs_alloc(0, ret_buf);
+		MEM_free(ret_buf);
+
         value.u.object_value = 
-			crb_create_crowbar_string(interpreter, ret_buf);
+			crb_create_crowbar_string(interpreter, wstr);
     } else {
         value.type = CRB_NULL_VALUE;
     }
@@ -196,7 +210,8 @@ void crb_nv_fputs_proc(CRB_Interpreter *interpreter,
     }
     fp = args[1].u.native_pointer.pointer;
 
-    fputs(args[0].u.object_value->u.string.string, fp);
+	CRB_print_wcs(fp, args[0].u.object_value->u.string.string);
+
 
     crb_stack_shrink_size(interpreter, 2);
 	crb_stack_push_value(interpreter, &value);

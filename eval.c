@@ -95,7 +95,7 @@ eval_double_expression(CRB_Interpreter *inter, double double_value)
 }
 
 static void
-eval_string_expression(CRB_Interpreter *inter, char *string_value)
+eval_string_expression(CRB_Interpreter *inter, CRB_CHAR *string_value)
 {
     CRB_Value   v;
 
@@ -432,7 +432,7 @@ eval_compare_string(ExpressionType operator,
     CRB_Boolean result;
     int cmp;
 
-    cmp = strcmp(left->u.object_value->u.string.string, 
+    cmp = CRB_wcscmp(left->u.object_value->u.string.string, 
 				right->u.object_value->u.string.string);
 
     if (operator == EQ_EXPRESSION) {
@@ -482,17 +482,19 @@ void
 chain_string(CRB_Interpreter *inter, CRB_Value *left, CRB_Value *right,
 				CRB_Value *result)
 {
-	char *right_str;
+	CRB_CHAR *right_str;
     int len;
-    char *str;
+    CRB_CHAR *str;
 
 	right_str = CRB_value_to_string(right);
 
 	result->type = CRB_STRING_VALUE;
-	len = strlen(left->u.object_value->u.string.string) + strlen(right_str);
-	str = MEM_malloc(len+1);
-	strcpy(str, left->u.object_value->u.string.string);
-	strcat(str, right_str);
+	len = CRB_wcslen(left->u.object_value->u.string.string) + 
+			CRB_wcslen(right_str);
+
+	str = (CRB_CHAR*)MEM_malloc((len+1)*sizeof(CRB_CHAR));
+	CRB_wcscpy(str, left->u.object_value->u.string.string);
+	CRB_wcscat(str, right_str);
 	result->u.object_value = crb_create_crowbar_string(inter, str);
 
 	MEM_free(right_str);
@@ -892,7 +894,7 @@ static void eval_method_call_expression(CRB_Interpreter *inter,
 										argument, 0);
 			result.type = CRB_INT_VALUE;
 			result.u.int_value = 
-				strlen(left->u.object_value->u.string.string);
+				CRB_wcslen(left->u.object_value->u.string.string);
 		}
 		else {
 			crb_runtime_error(expr->line_number, NO_SUCH_METHOD_ERR,

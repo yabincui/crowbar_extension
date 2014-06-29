@@ -124,21 +124,27 @@ format_message(MessageFormat *format, VString *v, va_list ap)
     MessageArgument     arg[MESSAGE_ARGUMENT_MAX];
     MessageArgument     cur_arg;
 
+	// utf8 is for the source code encoding, which will not change
+	Encoding save_encoding = CRB_set_encoding(UTF8_ENCODING); 
+
+	CRB_CHAR* wstr = CRB_mbstowcs_alloc(0, format->format);
+	
+
     create_message_argument(arg, ap);
 
-    for (i = 0; format->format[i] != '\0'; i++) {
-        if (format->format[i] != '$') {
-            crb_vstr_append_character(v, format->format[i]);
+    for (i = 0; wstr[i] != L'\0'; i++) {
+        if (wstr[i] != L'$') {
+            crb_vstr_append_wcharacter(v, wstr[i]);
             continue;
         }
-        assert(format->format[i+1] == '(');
+        assert(wstr[i+1] == L'(');
         i += 2;
-        for (arg_name_index = 0; format->format[i] != ')';
+        for (arg_name_index = 0; wstr[i] != L')';
              arg_name_index++, i++) {
-            arg_name[arg_name_index] = format->format[i];
+            arg_name[arg_name_index] = CRB_wctochar(wstr[i]);
         }
         arg_name[arg_name_index] = '\0';
-        assert(format->format[i] == ')');
+        assert(wstr[i] == L')');
 
         search_argument(arg, arg_name, &cur_arg);
         switch (cur_arg.type) {
@@ -169,6 +175,11 @@ format_message(MessageFormat *format, VString *v, va_list ap)
             assert(0);
         }
     }
+
+	MEM_free(wstr);
+
+	CRB_set_encoding(save_encoding);
+
 }
 
 void
@@ -209,7 +220,10 @@ crb_compile_error(CompileError id, ...)
     crb_vstr_clear(&message);
     format_message(&crb_compile_error_message_format[id],
                    &message, ap);
-    fprintf(stderr, "%3d:%s\n", line_number, message.string);
+
+	fprintf(stderr, "%3d:", line_number);
+	CRB_println_wcs(stderr, message.string);
+
     va_end(ap);
 
     exit(1);
@@ -226,7 +240,9 @@ crb_runtime_error(int line_number, RuntimeError id, ...)
     crb_vstr_clear(&message);
     format_message(&crb_runtime_error_message_format[id],
                    &message, ap);
-    fprintf(stderr, "%3d:%s\n", line_number, message.string);
+	
+	fprintf(stderr, "%3d:", line_number);
+	CRB_println_wcs(stderr, message.string);
     va_end(ap);
 
     exit(1);

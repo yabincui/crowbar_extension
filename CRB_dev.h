@@ -2,6 +2,8 @@
 #define PUBLIC_CRB_DEV_H_INCLUDED
 #include "CRB.h"
 
+typedef wchar_t CRB_CHAR;
+
 typedef enum {
     CRB_FALSE = 0,
     CRB_TRUE = 1

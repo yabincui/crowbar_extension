@@ -30,7 +30,7 @@
         equality_expression relational_expression
         additive_expression multiplicative_expression
         unary_expression postfix_expression primary_expression
-		array_literal 
+		array_literal expression_or_array_literal
 %type   <statement> statement global_statement
         if_statement while_statement for_statement
         return_statement break_statement continue_statement block_statement
@@ -96,14 +96,10 @@ statement_list
         ;
 expression
         : logical_or_expression
-        | postfix_expression ASSIGN expression
+        | postfix_expression ASSIGN expression_or_array_literal
         {
             $$ = crb_create_assign_expression($1, $3);
         }
-		| postfix_expression ASSIGN array_literal
-		{
-			$$ = crb_create_assign_expression($1, $3);
-		}
         ;
 logical_or_expression
         : logical_and_expression
@@ -268,16 +264,21 @@ array_literal
 		}
 		;
 
+expression_or_array_literal
+		: expression
+		| array_literal
+		;
+
 expression_list
 		:
 		{
 			$$ = NULL;
 		}
-		| expression
+		| expression_or_array_literal
 		{
 			$$ = crb_create_expression_list($1);
 		}
-		| expression_list COMMA expression
+		| expression_list COMMA expression_or_array_literal
 		{
 			$$ = crb_chain_expression_list($1, $3);
 		}

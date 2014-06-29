@@ -2,6 +2,8 @@ crowbar_extension VERSION INFO
 =================================
 
 
+version 0.3:   realize utf8 suport.
+
 version 0.2:   realize array and garbage collect.
 
 version 0.1:   realize basic expression, statement, function and standard IO.

@@ -6,6 +6,7 @@ MessageFormat crb_compile_error_message_format[] = {
     {"syntex parse error near ($(token))"},
     {"unexpected character ($(bad_char))"},
     {"function name conflict ($(name))"},
+	{"bad multibyte character in compilation"},
     {"dummy"},
 };
 
@@ -36,5 +37,7 @@ MessageFormat crb_runtime_error_message_format[] = {
 	{"array size is $(size), access index is [$(index)]."},
 	{"argument type for new_array() should be nonnegative integer"},
 	{"increment/decrement operand type must be lvalue integer"},
+	{"bad multibyte character met"},
+	{"bad crb character met"},
     {"dummy"},
 };

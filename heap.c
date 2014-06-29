@@ -24,7 +24,7 @@ static CRB_Object* alloc_object(CRB_Interpreter *inter, ObjectType type)
 }
 
 
-CRB_Object* crb_literal_to_crb_string(CRB_Interpreter *inter, char *str)
+CRB_Object* crb_literal_to_crb_string(CRB_Interpreter *inter, CRB_CHAR *str)
 {
 	CRB_Object *object;
 
@@ -77,14 +77,14 @@ void crb_release_string(CRB_Interpreter *inter, CRB_Object *object)
 */
 
 
-CRB_Object* crb_create_crowbar_string(CRB_Interpreter *inter, char *str)
+CRB_Object* crb_create_crowbar_string(CRB_Interpreter *inter, CRB_CHAR *str)
 {
 	CRB_Object *object;
 
 	object = alloc_object(inter, STRING_OBJECT);
 	object->u.string.string = str;
 	object->u.string.is_literal = CRB_FALSE;
-	inter->heap.current_heap_size += strlen(str)+1;
+	inter->heap.current_heap_size += sizeof(CRB_CHAR) * (CRB_wcslen(str)+1);
 
 	return object;
 }

@@ -17,6 +17,7 @@ OBJS = \
   load.o \
   heap.o \
   gc.o \
+  wchar.o \
   ./memory/mem.o\
   ./debug/dbg.o
 CFLAGS = -c -g -Wall -DDEBUG #-Wswitch-enum -DDEBUG #-ansi -pedantic -DDEBUG
@@ -58,4 +59,4 @@ heap.o: heap.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 util.o: util.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 dump_load.o : dump_load.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
 gc.o: gc.c MEM.h DBG.h crowbar.h CRB.h CRB_dev.h
-
+wchar.o: MEM.h DBG.h crowbar.h

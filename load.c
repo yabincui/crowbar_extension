@@ -409,13 +409,16 @@ static Expression* load_string_expression(FILE *fpin)
 
 		if (strcmp(line->argv[0], "STRING_EXPRESSION")==0) {
 			expr = crb_alloc_expression(STRING_EXPRESSION);
-			int len = strlen(line->argv[1])-1; // \"abc\"
-			char *str = crb_malloc(len);
-			int i;
-			for (i=0; i<len-1; i++) {
-				str[i] = line->argv[1][i+1];
-			}
-			str[i] = '\0';
+			char *mb_str = line->argv[1]+1;
+			int mb_len = strlen(mb_str);
+			mb_str[mb_len-1] = '\0';  // omit "" in "abc"
+			
+			int wc_len = CRB_mbstowcs_len(mb_str);
+			DBG_assert(wc_len >= 0, ("wc_len..%d\n", wc_len));
+			CRB_CHAR *str = (CRB_CHAR*)crb_malloc(
+					sizeof(CRB_CHAR)*(wc_len+1));
+			CRB_mbstowcs(str, mb_str);
+
 			expr->u.string_value = str;
 			release_line(line);
 			break;

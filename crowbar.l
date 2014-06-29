@@ -17,7 +17,7 @@ increment_line_number(void)
     crb_get_current_interpreter()->current_line_number++;
 }
 %}
-%start COMMENT STRING_LITERAL_STATE
+%start COMMENT STRING_LITERAL_STATE GBK_2ND_CHAR
 %%
 <INITIAL>"function"     return FUNCTION;
 <INITIAL>"if"           return IF;
@@ -114,5 +114,18 @@ increment_line_number(void)
 <STRING_LITERAL_STATE>\\n       crb_add_string_literal('\n');
 <STRING_LITERAL_STATE>\\t       crb_add_string_literal('\t');
 <STRING_LITERAL_STATE>\\\\      crb_add_string_literal('\\');
-<STRING_LITERAL_STATE>.         crb_add_string_literal(yytext[0]);
+<STRING_LITERAL_STATE>.         {
+		crb_add_string_literal(yytext[0]);
+		Encoding enc = crb_get_current_interpreter()->source_encoding;
+		if (enc == GBK_ENCODING && yytext[0] >= 0x80)
+			BEGIN GBK_2ND_CHAR;
+
+}
+
+<GBK_2ND_CHAR>.                 {
+		crb_add_string_literal(yytext[0]);
+		BEGIN STRING_LITERAL_STATE;
+
+}
+
 %%

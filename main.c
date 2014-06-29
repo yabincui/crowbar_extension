@@ -60,6 +60,32 @@ static void load_crb_code(CRB_Interpreter *inter, const char *crb_filename)
 	fclose(fpload);
 }
 
+Encoding string_to_encoding(const char *type_name)
+{
+	Encoding type = NO_ENCODING;
+
+	if (strcmp(type_name, "en")==0)
+		type = EN_ENCODING;
+	else if (strcmp(type_name, "utf8")==0)
+		type = UTF8_ENCODING;
+	else if (strcmp(type_name, "gbk")==0)
+		type = GBK_ENCODING;
+	
+	return type;
+}
+
+
+void usage()
+{
+	printf("crowbar v0.3 usage:\n");
+	printf("  crowbar [options] source_file_name\n");
+	printf("options:\n");
+	printf("  --source_encoding string  -- set the source file encoding\n");
+	printf("  --env_encoding string     -- set the environment encoding\n");
+	printf("supported encoding: en, utf8, gbk\n");
+	printf("\n\n");
+}
+
 int
 main(int argc, char **argv)
 {
@@ -71,19 +97,53 @@ main(int argc, char **argv)
 	int dump2_crb_code_flag = 1;
 	int exec_flag = 1;
 
-    if (argc != 2) {
-        fprintf(stderr, "usage:%s filename", argv[0]);
-        exit(1);
+	char *source_name = NULL;
+	Encoding source_encoding = UTF8_ENCODING;
+	Encoding env_encoding = UTF8_ENCODING;
+	int i;
+
+	for (i=1; i<argc; i++) {
+		if (strcmp(argv[i], "--source_encoding")==0) {
+			i++;
+			if (i==argc) {
+				usage();
+				exit(1);
+			}
+			source_encoding = string_to_encoding(argv[i]);
+		}
+		else if (strcmp(argv[i], "--env_encoding")==0) {
+			i++;
+			if (i==argc) {
+				usage();
+				exit(1);
+			}
+			env_encoding = string_to_encoding(argv[i]);
+		}
+		else {
+			if (source_name == NULL)
+				source_name = argv[i];
+			else {
+				usage();
+				exit(1);
+			}
+		}
+	
+	}
+
+    if (source_name == NULL || source_encoding == NO_ENCODING
+			|| env_encoding == NO_ENCODING) {
+        usage();
+		exit(1);
     }
 
-    fp = fopen(argv[1], "r");
+    fp = fopen(source_name, "r");
     if (fp == NULL) {
-        fprintf(stderr, "%s not found.\n", argv[1]);
+        fprintf(stderr, "%s not found.\n", source_name);
         exit(1);
     }
 
 
-    interpreter = CRB_create_interpreter();
+    interpreter = CRB_create_interpreter(source_encoding, env_encoding);
     CRB_compile(interpreter, fp);
 	if (dump_crb_code_flag)
 		dump_crb_code(interpreter, argv[1]);

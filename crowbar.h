@@ -5,6 +5,7 @@
 #include "CRB.h"
 #include "CRB_dev.h"
 
+
 #define smaller(a, b) ((a) < (b) ? (a) : (b))
 #define larger(a, b) ((a) > (b) ? (a) : (b))
 
@@ -18,6 +19,7 @@ typedef enum {
     PARSE_ERR = 1,
     CHARACTER_INVALID_ERR,
     FUNCTION_MULTIPLE_DEFINE_ERR,
+	BAD_MULTIBYTE_CHARACTER_IN_COMPILE_ERR,
     COMPILE_ERROR_COUNT_PLUS_1
 } CompileError;
 
@@ -47,6 +49,8 @@ typedef enum {
 	ARRAY_INDEX_OUT_OF_BOUND_ERR,
 	NEW_ARRAY_ARGUMENT_TYPE_ERR,
 	INC_DEC_OPERAND_TYPE_ERR,
+	BAD_MULTIBYTE_CHARACTER_ERR,
+	BAD_CRB_CHARACTER_ERR,
     RUNTIME_ERROR_COUNT_PLUS_1
 } RuntimeError;
 
@@ -158,7 +162,7 @@ struct Expression_tag {
         CRB_Boolean             boolean_value;
         int                     int_value;
         double                  double_value;
-        char                    *string_value;
+        CRB_CHAR                *string_value;
         char                    *identifier;
         AssignExpression        assign_expression;
         BinaryExpression        binary_expression;
@@ -309,7 +313,7 @@ struct CRB_LocalEnvironment_tag {
 };
 
 struct CRB_String_tag {
-    char        *string;
+    CRB_CHAR    *string;
     CRB_Boolean is_literal;
 };
 
@@ -332,6 +336,7 @@ typedef struct {
 	int gc_enabled;
 } Heap;
 
+
 struct CRB_Interpreter_tag {
     MEM_Storage         interpreter_storage;
     MEM_Storage         execute_storage;
@@ -342,6 +347,8 @@ struct CRB_Interpreter_tag {
 	Stack				stack;
 	Heap				heap;
 	CRB_LocalEnvironment *top_env;
+	Encoding            source_encoding;
+	Encoding			env_encoding;
 };
 
 
@@ -367,7 +374,7 @@ struct CRB_Object_tag {
 
 
 typedef struct {
-	char *string;
+	CRB_CHAR *string;
 } VString;
 
 
@@ -432,7 +439,7 @@ char *crb_create_identifier(char *str);
 void crb_open_string_literal(void);
 void crb_add_string_literal(int letter);
 void crb_reset_string_literal_buffer(void);
-char *crb_close_string_literal(void);
+CRB_CHAR *crb_close_string_literal(void);
 
 /* execute.c */
 StatementResult
@@ -456,10 +463,10 @@ CRB_Value* crb_stack_peek_value(CRB_Interpreter *inter, int index);
 void crb_stack_shrink_size(CRB_Interpreter *inter, int shrink_size);
 
 /* heap.c */
-CRB_Object *crb_literal_to_crb_string(CRB_Interpreter *inter, char *str);
+CRB_Object *crb_literal_to_crb_string(CRB_Interpreter *inter, CRB_CHAR *str);
 //void crb_refer_string(CRB_Object *obj);
 //void crb_release_string(CRB_Interpreter *inter, CRB_Object *obj);
-CRB_Object *crb_create_crowbar_string(CRB_Interpreter *inter, char *str);
+CRB_Object *crb_create_crowbar_string(CRB_Interpreter *inter, CRB_CHAR *str);
 CRB_Object* crb_create_array(CRB_Interpreter *inter, int array_size);
 void crb_array_add(CRB_Interpreter *inter, CRB_Object *obj, CRB_Value *val);
 int crb_array_size(CRB_Interpreter *inter, CRB_Object *obj);
@@ -488,7 +495,9 @@ char *crb_get_operator_string(ExpressionType type);
 void crb_vstr_clear(VString *v);
 void crb_vstr_append_string(VString *v, char *str);
 void crb_vstr_append_character(VString *v, char ch);
-char* CRB_value_to_string(CRB_Value *value);
+void crb_vstr_append_wstring(VString *v, CRB_CHAR *str);
+void crb_vstr_append_wcharacter(VString *v, CRB_CHAR ch);
+CRB_CHAR* CRB_value_to_string(CRB_Value *value);
 
 
 /* error.c */
@@ -521,5 +530,23 @@ void crb_gc_enable(CRB_Interpreter *inter);
 void crb_gc_disable(CRB_Interpreter *inter);
 void crb_garbage_collect(CRB_Interpreter *inter);
 void crb_check_gc(CRB_Interpreter *inter);
+
+
+/* wchar.c */
+size_t CRB_wcslen(CRB_CHAR *str);
+CRB_CHAR* CRB_wcscpy(CRB_CHAR *dest, CRB_CHAR *src);
+CRB_CHAR* CRB_wcsncpy(CRB_CHAR *dest, CRB_CHAR *src, size_t n);
+int CRB_wcscmp(CRB_CHAR *s1, CRB_CHAR *s2);
+CRB_CHAR* CRB_wcscat(CRB_CHAR *s1, CRB_CHAR *s2);
+int CRB_mbstowcs_len(const char *src);
+int CRB_mbstowcs(CRB_CHAR *dest, const char *src);
+CRB_CHAR* CRB_mbstowcs_alloc(int line_number, const char *src);
+int CRB_wcstombs_len(const CRB_CHAR *src);
+int CRB_wcstombs(char *dest, const CRB_CHAR *src);
+char* CRB_wcstombs_alloc(int line_number, const CRB_CHAR *src);
+char CRB_wctochar(CRB_CHAR src);
+int CRB_print_wcs(FILE *fp, CRB_CHAR *str);
+int CRB_println_wcs(FILE *fp, CRB_CHAR *str);
+Encoding CRB_set_encoding(Encoding type);
 
 #endif /* PRIVATE_CROWBAR_H_INCLUDED */
